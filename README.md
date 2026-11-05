@@ -9,19 +9,19 @@
 
 | 项目 | 状态 |
 |---|---|
-| 当前阶段 | 第六阶段完成 |
-| 项目进度 | 6 / 12 |
+| 当前阶段 | 第七阶段完成 |
+| 项目进度 | 7 / 12 |
 | 可运行应用 | 是 |
-| 业务功能 | 图片、电子 PDF、文本上传提取；草稿保存；原件预览 |
-| 数据库 | 15 张表；演示数据已导入；上传文件保存在 `data/uploads` |
+| 业务功能 | 三种输入；食材匹配；单位/包装换算；用户确认；别名/换算记忆 |
+| 数据库 | 15 张表；演示数据已导入；标准化只改报价行，不改价格历史 |
 | AI Key | 不需要；当前为 mock 模式 |
 | Node.js | 24.22.1 |
 
-> 首页仍是运行骨架；真正的报价输入页面在 `/quotes/new`。  
-> 第七阶段会做食材标准化、单位换算和用户确认。  
+> 首页仍是运行骨架；真正的报价输入和确认页面在 `/quotes/new`。  
+> 第八阶段会做确定性成本计算引擎。  
 > 当前 mock 模式只识别内置样例图片；电子 PDF 会真实抽取文字层；任意图片需要配置视觉模型。
 
-![第六阶段上传报价页面](docs/assets/stage6-quote-upload.png)
+![第七阶段食材匹配和确认页面](docs/assets/stage7-confirmation-detail.png)
 
 ---
 
@@ -48,7 +48,13 @@ npm run dev
 - 点击“使用样例 PDF”上传电子 PDF；
 - 点击“使用样例文本”并提取纯文本。
 
-三种方式都会得到 12 行结构化结果和 1 个土豆包装确认问题。图片/PDF 还会显示原件预览。
+三种方式都会得到 12 行结构化结果，并自动进入食材匹配和单位检查。图片/PDF 还会显示原件预览。
+
+样例数据中的土豆会留下 1 个包装问题：
+
+> 1 箱土豆是多少公斤？
+
+输入 `20`，单位选择 `kg`，点击“确认并继续”，系统会把它换算成 `20,000 g` 和 `¥4.80/kg`。勾选“记住这个包装换算”后，下次会自动使用。
 
 健康检查会真实打开一个内存 SQLite 数据库并执行 `SELECT 1`。正常结果类似：
 
@@ -56,8 +62,8 @@ npm run dev
 {
   "status": "ok",
   "app": "菜价雷达",
-  "stage": 6,
-  "stageLabel": "图片和 PDF 报价单",
+  "stage": 7,
+  "stageLabel": "食材标准化与确认",
   "database": "ok",
   "checkedAt": "2026-11-05T05:15:52.808Z"
 }
@@ -145,24 +151,33 @@ src/app/                页面和接口
   page.tsx              当前运行骨架首页
   layout.tsx            全站布局和元数据
   globals.css           Tailwind 入口和基础样式
-  quotes/new/page.tsx   报价输入页（图片/PDF/文本）
+  quotes/new/page.tsx   报价输入与确认页
   api/health/route.ts   服务端健康检查
   api/quotes/extract/   报价文本提取 API
   api/quotes/upload/    图片/PDF 上传提取 API
   api/quotes/[id]/source/  原件预览 API
+  api/quotes/[id]/standardize/  食材匹配和换算 API
+  api/quotes/[id]/confirmations/ 用户确认 API
 
 src/components/         界面组件
   quote-extraction-form.tsx  上传、粘贴、提取、原件预览
+  standardization-panel.tsx  匹配表、确认问题和记忆操作
 
 src/domain/             纯业务规则
   normalize.ts          名称标准化
   money.ts              元字符串 → 整数微元
+  quantity.ts           十进制数量缩放
+  unit-conversion.ts    单位/包装换算和价格归一化
+  ingredient-matching.ts 别名/名称匹配
   quote-extraction.ts   提取 schema、置信度和问题类型
+  standardization.ts    标准化结果、确认问题、确认输入 schema
 
 src/agent/              Agent 编排
   extract-quote.ts      文本提取入口
   extract-quote-file.ts 图片/PDF 提取入口
   save-quote-draft.ts   共享草稿保存和审计逻辑
+  standardize-quote.ts  规则匹配、换算、异常价格检查
+  confirm-quote.ts      确认记录、别名/换算记忆
 
 src/providers/          AI/解析适配层
   quote-extraction-provider.ts  文本提供方接口
@@ -204,6 +219,9 @@ tests/                  测试
   money.test.ts         金额字符串精度测试
   extraction.test.ts    文本提取、置信度、草稿保存测试
   file-extraction.test.ts 图片/PDF 上传和原件测试
+  unit-conversion.test.ts 数量缩放、单位/包装换算测试
+  ingredient-matching.test.ts 别名、名称和歧义匹配测试
+  standardization.test.ts 标准化、确认、记忆和异常价格测试
 
 docs/                   产品、计划、数据模型、演示文档
 data/                   本地 SQLite、固定演示数据和上传原件
@@ -295,40 +313,41 @@ public/samples/         可下载的样例报价单
 
 ---
 
-## 第六阶段验证结果
+## 第七阶段验证结果
 
 | 检查项 | 结果 |
 |---|---|
-| 报价页 | HTTP 200，`/quotes/new` 可访问 |
-| 样例图片上传 | HTTP 200，来源类型 `image` |
-| 样例 PDF 上传 | HTTP 200，来源类型 `pdf` |
-| 图片 / PDF 提取行数 | 12 / 12 |
-| 待确认问题 | 1 个：土豆包装未注明重量 |
-| 原件预览 | 图片返回 `image/png`，PDF 返回 `application/pdf` |
-| 原件清理 | `demo:reset` 会删除演示报价关联的上传文件 |
-| 价格历史变化 | 不变，仍为 38 条 |
-| `npm test` | 26 个测试通过 |
+| 自动匹配 | 12 / 12 行匹配到标准食材 |
+| 自动归一化 | 11 行完成；土豆等待包装确认 |
+| 阻塞问题 | 1 个：土豆 1 箱未注明重量 |
+| 确认后换算 | 20kg → 20,000g，¥4.80/kg |
+| 确认后状态 | `ready`，0 个阻塞问题 |
+| 记忆换算 | `箱 → g`，factor 20000 |
+| 记忆别名 | 歧义选择可写入供应商别名 |
+| 异常价格 | 超过 30% 会阻塞，确认后放行 |
+| 价格历史 | 不变，仍为 38 条 |
+| `npm test` | 43 个测试通过 |
 | `npm run typecheck` | 通过 |
 | `npm run build` | 成功 |
-| 构建路由 | 新增 `/api/quotes/upload`、`/api/quotes/[id]/source` |
+| 新增路由 | `/api/quotes/[id]/standardize`、`/api/quotes/[id]/confirmations` |
 | 首页 / 健康接口 | 200 |
 
 ---
 
 ## 下一步
 
-**第七阶段：食材标准化、单位换算和确认。**
+**第八阶段：确定性成本计算引擎。**
 
-第七阶段会做：
+第八阶段会做：
 
-- 把“去骨鸡腿”“鸡腿”“土豆”“洋芋”等映射到标准食材；
-- 处理 kg、斤、箱、袋等单位/包装换算；
-- 对歧义给出候选和依据；
-- 让用户确认并记住别名/换算；
-- 把确认记录保存到数据库；
-- 仍然不改正式价格，直到确认完成。
+- 根据菜谱用量和价格历史计算单份食材成本；
+- 计算食材成本率；
+- 计算涨价前后的单份成本变化；
+- 有销量时计算预计周食材毛利影响；
+- 缺销量时返回空值，不编造金额；
+- 用表驱动测试锁定所有公式和边界。
 
-在进入第七阶段之前，先在 `/quotes/new` 使用样例图片或 PDF，确认原件预览和 12 行提取结果。
+在进入第八阶段之前，先在 `/quotes/new` 走一遍“提取 → 匹配 → 输入 20kg → 确认”的流程。
 
 ---
 

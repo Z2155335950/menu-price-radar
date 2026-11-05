@@ -7,10 +7,12 @@ import type {
   ExtractionResponse,
   ExtractionResponseItem,
 } from "@/domain/quote-extraction";
+import type { StandardizationResult } from "@/domain/standardization";
 import {
   DEMO_QUOTE_IMAGE_PATH,
   DEMO_QUOTE_PDF_PATH,
 } from "@/lib/demo-files";
+import StandardizationPanel from "./standardization-panel";
 
 type QuoteExtractionFormProps = {
   sampleText: string;
@@ -98,13 +100,21 @@ export default function QuoteExtractionForm({
   const [text, setText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [result, setResult] = useState<ExtractionResponse | null>(null);
+  const [standardization, setStandardization] =
+    useState<StandardizationResult | null>(null);
+  const [standardizationError, setStandardizationError] = useState<
+    string | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isStandardizing, setIsStandardizing] = useState(false);
 
   async function submitQuote() {
     setError(null);
     setResult(null);
+    setStandardization(null);
+    setStandardizationError(null);
 
     if (!text.trim()) {
       setError("请先粘贴报价文本。");
@@ -132,7 +142,9 @@ export default function QuoteExtractionForm({
         );
       }
 
-      setResult(payload as ExtractionResponse);
+      const extraction = payload as ExtractionResponse;
+      setResult(extraction);
+      await standardize(extraction.quoteId);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -144,9 +156,44 @@ export default function QuoteExtractionForm({
     }
   }
 
+  async function standardize(quoteId: number) {
+    setStandardizationError(null);
+    setIsStandardizing(true);
+
+    try {
+      const response = await fetch(
+        `/api/quotes/${quoteId}/standardize`,
+        { method: "POST" },
+      );
+      const payload = (await response.json()) as
+        | StandardizationResult
+        | { error?: string };
+
+      if (!response.ok) {
+        throw new Error(
+          "error" in payload && payload.error
+            ? payload.error
+            : "食材匹配和单位检查失败。",
+        );
+      }
+
+      setStandardization(payload as StandardizationResult);
+    } catch (requestError) {
+      setStandardizationError(
+        requestError instanceof Error
+          ? requestError.message
+          : "食材匹配和单位检查失败。",
+      );
+    } finally {
+      setIsStandardizing(false);
+    }
+  }
+
   async function uploadFile(file: File) {
     setError(null);
     setResult(null);
+    setStandardization(null);
+    setStandardizationError(null);
     setIsUploading(true);
 
     try {
@@ -170,7 +217,9 @@ export default function QuoteExtractionForm({
         );
       }
 
-      setResult(payload as ExtractionResponse);
+      const extraction = payload as ExtractionResponse;
+      setResult(extraction);
+      await standardize(extraction.quoteId);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -189,6 +238,8 @@ export default function QuoteExtractionForm({
   ) {
     setError(null);
     setResult(null);
+    setStandardization(null);
+    setStandardizationError(null);
     setIsUploading(true);
 
     try {
@@ -217,6 +268,8 @@ export default function QuoteExtractionForm({
     setText(sampleText);
     setError(null);
     setResult(null);
+    setStandardization(null);
+    setStandardizationError(null);
   }
 
   function clearAll() {
@@ -224,9 +277,11 @@ export default function QuoteExtractionForm({
     setSelectedFile(null);
     setError(null);
     setResult(null);
+    setStandardization(null);
+    setStandardizationError(null);
   }
 
-  const isBusy = isSubmitting || isUploading;
+  const isBusy = isSubmitting || isUploading || isStandardizing;
 
   return (
     <div className="space-y-6">
@@ -414,13 +469,53 @@ export default function QuoteExtractionForm({
           </div>
         ) : null}
 
-        {result ? <ExtractionResult result={result} /> : null}
+        {result ? (
+          <>
+            <ExtractionResult
+              result={result}
+              questions={
+                standardization
+                  ? result.questions.filter(
+                      (question) => question.type !== "package_unknown",
+                    )
+                  : result.questions
+              }
+            />
+
+            {isStandardizing ? (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+                正在检查食材匹配、包装换算和历史价格…
+              </div>
+            ) : null}
+
+            {standardizationError ? (
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                <p className="font-semibold">食材检查没有完成</p>
+                <p className="mt-1">{standardizationError}</p>
+              </div>
+            ) : null}
+
+            {standardization ? (
+              <StandardizationPanel
+                quoteId={result.quoteId}
+                result={standardization}
+                onUpdated={setStandardization}
+              />
+            ) : null}
+          </>
+        ) : null}
       </div>
     </div>
   );
 }
 
-function ExtractionResult({ result }: { result: ExtractionResponse }) {
+function ExtractionResult({
+  result,
+  questions,
+}: {
+  result: ExtractionResponse;
+  questions: ExtractionQuestion[];
+}) {
   const needsConfirmation = result.status === "needs_confirmation";
 
   return (
@@ -509,18 +604,18 @@ function ExtractionResult({ result }: { result: ExtractionResponse }) {
         </section>
       ) : null}
 
-      {result.questions.length > 0 ? (
+      {questions.length > 0 ? (
         <section className="rounded-3xl border border-amber-200 bg-amber-50/70 p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-semibold tracking-tight text-amber-950">
-              需要你确认的 {result.questions.length} 项
+              需要你确认的 {questions.length} 项
             </h2>
             <span className="text-xs text-amber-700">
-              本阶段只展示问题，确认写回在第七阶段
+              提取阶段的问题
             </span>
           </div>
           <div className="mt-4 grid gap-3">
-            {result.questions.map((question, index) => (
+            {questions.map((question, index) => (
               <article
                 key={`${question.type}-${question.lineNo ?? "quote"}-${index}`}
                 className="rounded-2xl border border-amber-200 bg-white/80 p-4"
