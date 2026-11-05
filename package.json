@@ -15,7 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "node scripts/db-migrate.mjs",
-    "db:tables": "node scripts/db-tables.mjs"
+    "db:tables": "node scripts/db-tables.mjs",
+    "seed": "node scripts/seed.mjs",
+    "demo:reset": "node scripts/reset-demo.mjs"
   },
   "dependencies": {
     "next": "16.4.5",

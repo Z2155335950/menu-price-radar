@@ -9,18 +9,18 @@
 
 | 项目 | 状态 |
 |---|---|
-| 当前阶段 | 第三阶段完成 |
-| 项目进度 | 3 / 12 |
+| 当前阶段 | 第四阶段完成 |
+| 项目进度 | 4 / 12 |
 | 可运行应用 | 是 |
 | 业务功能 | 尚未开始 |
-| 数据库 | 已建立 15 张表；Schema 版本 `001` |
+| 数据库 | 15 张表；已导入 1 家虚构餐厅、15 道菜、38 种食材、12 行报价 |
 | AI Key | 不需要；当前为 mock 模式 |
 | Node.js | 24.22.1 |
 
 > 首页只是运行骨架，不是最终报价界面。  
-> 第四阶段会导入虚构餐厅、菜品和报价演示数据。
+> 第五阶段开始做“粘贴报价文本 → 结构化提取”的最小页面。
 
-![第三阶段运行骨架首页](docs/assets/stage3-home.png)
+![第四阶段演示数据首页](docs/assets/stage4-home.png)
 
 ---
 
@@ -31,6 +31,7 @@
 ```powershell
 npm install
 npm run db:migrate
+npm run seed
 npm run dev
 ```
 
@@ -45,8 +46,8 @@ npm run dev
 {
   "status": "ok",
   "app": "菜价雷达",
-  "stage": 3,
-  "stageLabel": "核心数据模型",
+  "stage": 4,
+  "stageLabel": "演示数据",
   "database": "ok",
   "checkedAt": "2026-11-05T05:15:52.808Z"
 }
@@ -55,12 +56,14 @@ npm run dev
 ### 数据库命令和其他命令
 
 ```powershell
-npm run db:migrate # 创建或升级 data/app.db
-npm run db:tables  # 列出数据库表
-npm test           # 运行 Vitest 测试
-npm run typecheck  # TypeScript 类型检查
-npm run build      # 生产构建
-npm run start      # 启动生产构建
+npm run db:migrate   # 创建或升级 data/app.db
+npm run db:tables    # 列出数据库表
+npm run seed         # 导入虚构演示数据；已存在时不重复
+npm run demo:reset   # 删除并重建演示数据
+npm test             # 运行 Vitest 测试
+npm run typecheck    # TypeScript 类型检查
+npm run build        # 生产构建
+npm run start        # 启动生产构建
 ```
 
 当前要求 Node.js 24 或更高版本，因为数据库驱动使用 Node 内置的 `node:sqlite`。
@@ -142,21 +145,29 @@ src/db/                 数据模型和访问基础设施
   types.ts              基础单位、状态和风险等级
   migrations/
     001_initial.sql     14 张业务/审计表
+  seed/
+    seed-demo.ts        演示数据导入和重置逻辑
 
 src/lib/                通用基础设施
   app-meta.ts           项目名称、阶段等常量
   health.ts             SQLite 连通性检查
 
-scripts/                数据库命令
+scripts/                数据库和演示命令
   db-migrate.mjs        执行迁移
   db-tables.mjs         列出表
+  seed.mjs              导入演示数据
+  reset-demo.mjs        重建演示数据
 
 tests/                  测试
   health.test.ts        SQLite 和健康结果测试
   db-migration.test.ts  迁移、约束和事务测试
+  demo-seed.test.ts     演示数据、成本基线和重置测试
 
 docs/                   产品、计划、数据模型、演示文档
-data/                   本地 SQLite 文件（数据库被 Git 忽略）
+data/                   本地 SQLite 和固定演示数据
+  app.db                本地数据库（被 Git 忽略）
+  fixtures/
+    demo-seed.json      虚构餐厅、菜品、报价和价格历史
 ```
 
 后续会逐步增加：
@@ -243,39 +254,45 @@ public/                 静态资源
 
 ---
 
-## 第三阶段验证结果
+## 第四阶段验证结果
 
 | 检查项 | 结果 |
 |---|---|
-| `npm install` | 成功 |
 | `npm run db:migrate` | 成功，Schema `001` |
-| `npm run db:tables` | 15 张表 |
-| `npm test` | 9 个测试通过 |
+| `npm run seed` | 成功导入演示数据 |
+| `npm run seed` 第二次 | 未重复写入 |
+| `npm run demo:reset` | 删除并重建成功 |
+| 演示餐厅 | 临江小馆 |
+| 菜品 / 食材 / 报价行 | 15 / 38 / 12 |
+| 历史价格 | 38 条 |
+| 宫保鸡丁旧成本 | 10.00 元 |
+| 红烧肉旧成本 | 10.04 元 |
+| 青椒土豆丝旧成本 | 4.00 元 |
+| 麻婆豆腐旧成本 | 3.50 元 |
+| 番茄炒蛋旧成本 | 5.35 元 |
+| `npm test` | 15 个测试通过 |
 | `npm run typecheck` | 通过 |
 | `npm run build` | 成功 |
-| `npm run dev` | 启动成功 |
 | 首页 HTTP 状态 | 200 |
 | `/api/health` HTTP 状态 | 200 |
-| 健康检查中的 SQLite | `ok` |
-| Git 仓库 | 已初始化 |
 
 ---
 
 ## 下一步
 
-**第四阶段：演示数据。**
+**第五阶段：报价文本提取。**
 
-第四阶段会导入：
+第五阶段会做：
 
-- 一家虚构餐厅“临江小馆”；
-- 15 道菜；
-- 20 种以上标准食材；
-- 供应商和价格历史；
-- 12 行供应商报价；
-- 宫保鸡丁、红烧肉、青椒土豆丝等预期风险结果；
-- 一键重置演示数据的命令。
+- 粘贴报价文本的最小页面；
+- 一个“使用样例文本”按钮；
+- 提取 API 和 mock 模式；
+- 结构化提取结果表；
+- 每个字段的证据和置信度；
+- 低置信度字段的确认提示；
+- 提取后只生成草稿，不修改正式价格。
 
-在进入第四阶段之前，先运行 `npm run db:tables`，确认 15 张表已经存在。
+在进入第五阶段之前，先运行 `npm run seed`，确认演示数据可以导入。
 
 ---
 

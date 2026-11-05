@@ -11,12 +11,12 @@ const checks = [
     detail: "Next.js App Router 已经接管首页渲染。",
   },
   {
-    title: "数据模型已建立",
-    detail: "运行 npm run db:tables 可以看到 15 张表；数据库文件是 data/app.db。",
+    title: "演示数据已导入",
+    detail: "临江小馆：15 道菜、38 种食材、12 行报价。运行 npm run seed 可检查。",
   },
   {
     title: "测试可以运行",
-    detail: "Vitest 已覆盖迁移、外键、唯一约束、事务和 SQLite 连通性。",
+    detail: "Vitest 已覆盖迁移、演示数据、成本基线和 SQLite 连通性。",
   },
 ];
 
@@ -99,6 +99,10 @@ export default function HomePage() {
                 <dd className="text-sm font-semibold text-stone-900">001</dd>
               </div>
               <div className="flex items-center justify-between py-3">
+                <dt className="text-sm text-stone-500">演示餐厅</dt>
+                <dd className="text-sm font-semibold text-stone-900">临江小馆</dd>
+              </div>
+              <div className="flex items-center justify-between py-3">
                 <dt className="text-sm text-stone-500">AI 模式</dt>
                 <dd className="text-sm font-semibold text-stone-900">mock</dd>
               </div>
@@ -153,7 +157,7 @@ export default function HomePage() {
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-5 text-xs text-stone-500">
           <p>当前只使用虚构演示数据，不包含真实餐厅或供应商信息。</p>
-          <p>下一步：演示数据</p>
+          <p>下一步：报价文本提取</p>
         </footer>
       </div>
     </main>

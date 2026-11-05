@@ -3,5 +3,5 @@ export const APP_TAGLINE = "餐厅食材变价与毛利预警 Agent";
 export const APP_DESCRIPTION =
   "上传供应商报价单，找出受食材涨价影响的菜品，并按预计食材毛利影响排序。";
 
-export const CURRENT_STAGE = 3;
-export const CURRENT_STAGE_LABEL = "核心数据模型";
+export const CURRENT_STAGE = 4;
+export const CURRENT_STAGE_LABEL = "演示数据";

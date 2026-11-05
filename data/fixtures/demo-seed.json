@@ -1,0 +1,797 @@
+{
+  "restaurant": {
+    "name": "临江小馆",
+    "currency": "CNY",
+    "timezone": "Asia/Shanghai"
+  },
+  "suppliers": [
+    { "key": "xianyuan", "name": "鲜源蔬菜配送" },
+    { "key": "hengfeng", "name": "恒丰肉禽" },
+    { "key": "haiji", "name": "海记水产" }
+  ],
+  "ingredients": [
+    {
+      "key": "chicken",
+      "name": "去骨鸡腿",
+      "baseUnit": "g",
+      "aliases": [{ "alias": "鸡腿", "supplierKey": "xianyuan" }]
+    },
+    {
+      "key": "potato",
+      "name": "土豆",
+      "baseUnit": "g",
+      "aliases": [{ "alias": "洋芋" }]
+    },
+    {
+      "key": "pork",
+      "name": "五花肉",
+      "baseUnit": "g"
+    },
+    {
+      "key": "tomato",
+      "name": "番茄",
+      "baseUnit": "g",
+      "aliases": [{ "alias": "西红柿" }]
+    },
+    {
+      "key": "egg",
+      "name": "鸡蛋",
+      "baseUnit": "g"
+    },
+    {
+      "key": "green_pepper",
+      "name": "青椒",
+      "baseUnit": "g",
+      "aliases": [{ "alias": "青尖椒" }]
+    },
+    {
+      "key": "beef",
+      "name": "牛肉末",
+      "baseUnit": "g",
+      "aliases": [{ "alias": "牛肉沫" }]
+    },
+    {
+      "key": "tofu",
+      "name": "豆腐",
+      "baseUnit": "g",
+      "aliases": [{ "alias": "盒装豆腐", "supplierKey": "xianyuan" }]
+    },
+    {
+      "key": "rice",
+      "name": "大米",
+      "baseUnit": "g",
+      "aliases": [{ "alias": "东北大米" }]
+    },
+    {
+      "key": "oil",
+      "name": "食用油",
+      "baseUnit": "ml",
+      "aliases": [{ "alias": "菜籽油" }]
+    },
+    {
+      "key": "peanuts",
+      "name": "花生米",
+      "baseUnit": "g"
+    },
+    {
+      "key": "cucumber",
+      "name": "黄瓜",
+      "baseUnit": "g"
+    },
+    {
+      "key": "dried_chili",
+      "name": "干辣椒",
+      "baseUnit": "g"
+    },
+    {
+      "key": "garlic",
+      "name": "大蒜",
+      "baseUnit": "g"
+    },
+    {
+      "key": "ginger",
+      "name": "生姜",
+      "baseUnit": "g"
+    },
+    {
+      "key": "scallion",
+      "name": "小葱",
+      "baseUnit": "g"
+    },
+    {
+      "key": "soy_sauce",
+      "name": "生抽",
+      "baseUnit": "g"
+    },
+    {
+      "key": "sugar",
+      "name": "白糖",
+      "baseUnit": "g"
+    },
+    {
+      "key": "vinegar",
+      "name": "香醋",
+      "baseUnit": "g"
+    },
+    {
+      "key": "kung_pao_sauce",
+      "name": "宫保酱汁",
+      "baseUnit": "g"
+    },
+    {
+      "key": "rock_sugar",
+      "name": "冰糖",
+      "baseUnit": "g"
+    },
+    {
+      "key": "cooking_wine",
+      "name": "料酒",
+      "baseUnit": "g"
+    },
+    {
+      "key": "star_anise",
+      "name": "八角",
+      "baseUnit": "g"
+    },
+    {
+      "key": "cinnamon",
+      "name": "桂皮",
+      "baseUnit": "g"
+    },
+    {
+      "key": "salt",
+      "name": "盐",
+      "baseUnit": "g"
+    },
+    {
+      "key": "tomato_paste",
+      "name": "番茄酱",
+      "baseUnit": "g"
+    },
+    {
+      "key": "sichuan_pepper",
+      "name": "花椒",
+      "baseUnit": "g"
+    },
+    {
+      "key": "wood_ear",
+      "name": "木耳",
+      "baseUnit": "g"
+    },
+    {
+      "key": "doubanjiang",
+      "name": "豆瓣酱",
+      "baseUnit": "g"
+    },
+    {
+      "key": "fish",
+      "name": "鲈鱼",
+      "baseUnit": "g"
+    },
+    {
+      "key": "shrimp",
+      "name": "基围虾",
+      "baseUnit": "g"
+    },
+    {
+      "key": "lettuce",
+      "name": "生菜",
+      "baseUnit": "g"
+    },
+    {
+      "key": "cauliflower",
+      "name": "花菜",
+      "baseUnit": "g"
+    },
+    {
+      "key": "cabbage",
+      "name": "白菜",
+      "baseUnit": "g"
+    },
+    {
+      "key": "winter_melon",
+      "name": "冬瓜",
+      "baseUnit": "g"
+    },
+    {
+      "key": "ribs",
+      "name": "排骨",
+      "baseUnit": "g"
+    },
+    {
+      "key": "seasonal_veg",
+      "name": "时令蔬菜",
+      "baseUnit": "g"
+    },
+    {
+      "key": "eggplant",
+      "name": "茄子",
+      "baseUnit": "g"
+    }
+  ],
+  "unitConversions": [
+    { "fromUnit": "kg", "toUnit": "g", "factor": 1000, "source": "system" },
+    { "fromUnit": "斤", "toUnit": "g", "factor": 500, "source": "system" },
+    { "fromUnit": "L", "toUnit": "ml", "factor": 1000, "source": "system" },
+    {
+      "ingredientKey": "chicken",
+      "fromUnit": "袋",
+      "toUnit": "g",
+      "factor": 5000,
+      "source": "system"
+    }
+  ],
+  "dishes": [
+    {
+      "key": "kung_pao",
+      "name": "宫保鸡丁",
+      "sellingPriceMicroYuan": 26000000,
+      "targetFoodCostRateBps": 3500,
+      "weeklySales": 600,
+      "recipe": [
+        { "ingredientKey": "chicken", "quantityBase": 250 },
+        { "ingredientKey": "peanuts", "quantityBase": 50 },
+        { "ingredientKey": "cucumber", "quantityBase": 100 },
+        { "ingredientKey": "dried_chili", "quantityBase": 50 },
+        { "ingredientKey": "oil", "quantityBase": 30 },
+        { "ingredientKey": "garlic", "quantityBase": 20 },
+        { "ingredientKey": "kung_pao_sauce", "quantityBase": 100 }
+      ]
+    },
+    {
+      "key": "braised_pork",
+      "name": "红烧肉",
+      "sellingPriceMicroYuan": 42000000,
+      "targetFoodCostRateBps": 2500,
+      "weeklySales": 300,
+      "recipe": [
+        { "ingredientKey": "pork", "quantityBase": 220 },
+        { "ingredientKey": "rock_sugar", "quantityBase": 50 },
+        { "ingredientKey": "soy_sauce", "quantityBase": 50 },
+        { "ingredientKey": "cooking_wine", "quantityBase": 50 },
+        { "ingredientKey": "ginger", "quantityBase": 30 },
+        { "ingredientKey": "scallion", "quantityBase": 50 },
+        { "ingredientKey": "star_anise", "quantityBase": 10 },
+        { "ingredientKey": "oil", "quantityBase": 50 },
+        { "ingredientKey": "cinnamon", "quantityBase": 20 }
+      ]
+    },
+    {
+      "key": "potato_shreds",
+      "name": "青椒土豆丝",
+      "sellingPriceMicroYuan": 16000000,
+      "targetFoodCostRateBps": 3000,
+      "weeklySales": 500,
+      "recipe": [
+        { "ingredientKey": "potato", "quantityBase": 300 },
+        { "ingredientKey": "green_pepper", "quantityBase": 50 },
+        { "ingredientKey": "oil", "quantityBase": 60 },
+        { "ingredientKey": "vinegar", "quantityBase": 30 },
+        { "ingredientKey": "garlic", "quantityBase": 20 },
+        { "ingredientKey": "scallion", "quantityBase": 30 },
+        { "ingredientKey": "salt", "quantityBase": 5 },
+        { "ingredientKey": "dried_chili", "quantityBase": 20 },
+        { "ingredientKey": "sichuan_pepper", "quantityBase": 5 },
+        { "ingredientKey": "wood_ear", "quantityBase": 20 }
+      ]
+    },
+    {
+      "key": "mapo_tofu",
+      "name": "麻婆豆腐",
+      "sellingPriceMicroYuan": 18000000,
+      "targetFoodCostRateBps": 3000,
+      "weeklySales": 400,
+      "recipe": [
+        { "ingredientKey": "tofu", "quantityBase": 200 },
+        { "ingredientKey": "beef", "quantityBase": 50 },
+        { "ingredientKey": "doubanjiang", "quantityBase": 30 },
+        { "ingredientKey": "garlic", "quantityBase": 20 },
+        { "ingredientKey": "scallion", "quantityBase": 30 },
+        { "ingredientKey": "oil", "quantityBase": 30 },
+        { "ingredientKey": "sichuan_pepper", "quantityBase": 2 }
+      ]
+    },
+    {
+      "key": "tomato_egg",
+      "name": "番茄炒蛋",
+      "sellingPriceMicroYuan": 22000000,
+      "targetFoodCostRateBps": 2500,
+      "weeklySales": null,
+      "recipe": [
+        { "ingredientKey": "tomato", "quantityBase": 200 },
+        { "ingredientKey": "egg", "quantityBase": 150 },
+        { "ingredientKey": "oil", "quantityBase": 150 },
+        { "ingredientKey": "scallion", "quantityBase": 20 },
+        { "ingredientKey": "sugar", "quantityBase": 10 },
+        { "ingredientKey": "salt", "quantityBase": 5 },
+        { "ingredientKey": "tomato_paste", "quantityBase": 99 }
+      ]
+    },
+    {
+      "key": "steamed_fish",
+      "name": "清蒸鲈鱼",
+      "sellingPriceMicroYuan": 48000000,
+      "targetFoodCostRateBps": 4000,
+      "weeklySales": 80,
+      "recipe": [
+        { "ingredientKey": "fish", "quantityBase": 500 },
+        { "ingredientKey": "ginger", "quantityBase": 20 },
+        { "ingredientKey": "scallion", "quantityBase": 30 },
+        { "ingredientKey": "soy_sauce", "quantityBase": 30 },
+        { "ingredientKey": "oil", "quantityBase": 20 }
+      ]
+    },
+    {
+      "key": "boiled_shrimp",
+      "name": "白灼虾",
+      "sellingPriceMicroYuan": 58000000,
+      "targetFoodCostRateBps": 4000,
+      "weeklySales": 60,
+      "recipe": [
+        { "ingredientKey": "shrimp", "quantityBase": 300 },
+        { "ingredientKey": "ginger", "quantityBase": 15 },
+        { "ingredientKey": "scallion", "quantityBase": 20 },
+        { "ingredientKey": "soy_sauce", "quantityBase": 20 }
+      ]
+    },
+    {
+      "key": "garlic_lettuce",
+      "name": "蒜蓉生菜",
+      "sellingPriceMicroYuan": 18000000,
+      "targetFoodCostRateBps": 3000,
+      "weeklySales": 300,
+      "recipe": [
+        { "ingredientKey": "lettuce", "quantityBase": 300 },
+        { "ingredientKey": "garlic", "quantityBase": 20 },
+        { "ingredientKey": "oil", "quantityBase": 20 },
+        { "ingredientKey": "salt", "quantityBase": 5 }
+      ]
+    },
+    {
+      "key": "dry_pot_cauliflower",
+      "name": "干锅花菜",
+      "sellingPriceMicroYuan": 26000000,
+      "targetFoodCostRateBps": 3000,
+      "weeklySales": 180,
+      "recipe": [
+        { "ingredientKey": "cauliflower", "quantityBase": 350 },
+        { "ingredientKey": "dried_chili", "quantityBase": 20 },
+        { "ingredientKey": "garlic", "quantityBase": 20 },
+        { "ingredientKey": "oil", "quantityBase": 30 },
+        { "ingredientKey": "soy_sauce", "quantityBase": 20 }
+      ]
+    },
+    {
+      "key": "sour_cabbage",
+      "name": "酸辣白菜",
+      "sellingPriceMicroYuan": 16000000,
+      "targetFoodCostRateBps": 2500,
+      "weeklySales": 250,
+      "recipe": [
+        { "ingredientKey": "cabbage", "quantityBase": 400 },
+        { "ingredientKey": "vinegar", "quantityBase": 30 },
+        { "ingredientKey": "dried_chili", "quantityBase": 20 },
+        { "ingredientKey": "garlic", "quantityBase": 10 },
+        { "ingredientKey": "oil", "quantityBase": 20 },
+        { "ingredientKey": "salt", "quantityBase": 5 }
+      ]
+    },
+    {
+      "key": "winter_melon_ribs",
+      "name": "冬瓜排骨汤",
+      "sellingPriceMicroYuan": 36000000,
+      "targetFoodCostRateBps": 3000,
+      "weeklySales": 90,
+      "recipe": [
+        { "ingredientKey": "winter_melon", "quantityBase": 300 },
+        { "ingredientKey": "ribs", "quantityBase": 200 },
+        { "ingredientKey": "ginger", "quantityBase": 10 },
+        { "ingredientKey": "scallion", "quantityBase": 20 },
+        { "ingredientKey": "salt", "quantityBase": 5 }
+      ]
+    },
+    {
+      "key": "seasonal_veg",
+      "name": "清炒时蔬",
+      "sellingPriceMicroYuan": 14000000,
+      "targetFoodCostRateBps": 2500,
+      "weeklySales": 350,
+      "recipe": [
+        { "ingredientKey": "seasonal_veg", "quantityBase": 300 },
+        { "ingredientKey": "garlic", "quantityBase": 20 },
+        { "ingredientKey": "oil", "quantityBase": 20 },
+        { "ingredientKey": "salt", "quantityBase": 5 }
+      ]
+    },
+    {
+      "key": "rice",
+      "name": "米饭",
+      "sellingPriceMicroYuan": 2000000,
+      "targetFoodCostRateBps": 4500,
+      "weeklySales": 2000,
+      "recipe": [{ "ingredientKey": "rice", "quantityBase": 150 }]
+    },
+    {
+      "key": "fish_fragrant_eggplant",
+      "name": "鱼香茄子",
+      "sellingPriceMicroYuan": 22000000,
+      "targetFoodCostRateBps": 3000,
+      "weeklySales": 160,
+      "recipe": [
+        { "ingredientKey": "eggplant", "quantityBase": 300 },
+        { "ingredientKey": "doubanjiang", "quantityBase": 20 },
+        { "ingredientKey": "sugar", "quantityBase": 10 },
+        { "ingredientKey": "vinegar", "quantityBase": 15 },
+        { "ingredientKey": "soy_sauce", "quantityBase": 15 },
+        { "ingredientKey": "garlic", "quantityBase": 15 },
+        { "ingredientKey": "oil", "quantityBase": 50 }
+      ]
+    },
+    {
+      "key": "cucumber_salad",
+      "name": "凉拌黄瓜",
+      "sellingPriceMicroYuan": 12000000,
+      "targetFoodCostRateBps": 2000,
+      "weeklySales": 220,
+      "recipe": [
+        { "ingredientKey": "cucumber", "quantityBase": 250 },
+        { "ingredientKey": "garlic", "quantityBase": 15 },
+        { "ingredientKey": "vinegar", "quantityBase": 15 },
+        { "ingredientKey": "soy_sauce", "quantityBase": 10 },
+        { "ingredientKey": "oil", "quantityBase": 10 },
+        { "ingredientKey": "salt", "quantityBase": 5 }
+      ]
+    }
+  ],
+  "priceHistory": [
+    { "ingredientKey": "chicken", "supplierKey": "hengfeng", "priceMicroPerBaseUnit": 18000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "potato", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 4000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "pork", "supplierKey": "hengfeng", "priceMicroPerBaseUnit": 32000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "tomato", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 5000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "egg", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 9000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "green_pepper", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 6000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "beef", "supplierKey": "hengfeng", "priceMicroPerBaseUnit": 30000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "tofu", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 3000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "rice", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 6000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "oil", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 12000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "peanuts", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 18000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "cucumber", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 5000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "dried_chili", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 20000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "garlic", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 12000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "ginger", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 10000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "scallion", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 6000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "soy_sauce", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 8000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "sugar", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 8000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "vinegar", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 5000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "kung_pao_sauce", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 25000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "rock_sugar", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 10000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "cooking_wine", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 6000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "star_anise", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 20000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "cinnamon", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 20000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "salt", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 2000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "tomato_paste", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 10000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "sichuan_pepper", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 10000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "wood_ear", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 37500, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "doubanjiang", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 20000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "fish", "supplierKey": "haiji", "priceMicroPerBaseUnit": 36000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "shrimp", "supplierKey": "haiji", "priceMicroPerBaseUnit": 60000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "lettuce", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 6000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "cauliflower", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 7000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "cabbage", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 3000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "winter_melon", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 3000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "ribs", "supplierKey": "hengfeng", "priceMicroPerBaseUnit": 38000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "seasonal_veg", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 5000, "effectiveDate": "2026-10-15" },
+    { "ingredientKey": "eggplant", "supplierKey": "xianyuan", "priceMicroPerBaseUnit": 5000, "effectiveDate": "2026-10-15" }
+  ],
+  "quote": {
+    "supplierKey": "xianyuan",
+    "supplierNameRaw": "鲜源蔬菜配送",
+    "quoteDate": "2026-11-01",
+    "currency": "CNY",
+    "sourceType": "text",
+    "sourceText": "鲜源蔬菜配送\n报价日期：2026-11-01\n去骨鸡腿 2袋×5kg 220.00\n土豆 1箱 96.00\n五花肉 10kg 352.00\n番茄 8kg 43.20\n鸡蛋 10kg 99.00\n青椒 5kg 32.40\n牛肉末 3kg 95.40\n豆腐 5kg 15.00\n大米 25kg 150.00\n食用油 10L 120.00\n花生米 2kg 36.00\n黄瓜 3kg 15.00\n合计：1274.00",
+    "status": "needs_confirmation",
+    "items": [
+      {
+        "lineNo": 1,
+        "itemNameRaw": "去骨鸡腿",
+        "ingredientKey": "chicken",
+        "quantityValue": "2",
+        "quantityUnit": "袋",
+        "packageSpecRaw": "5kg/袋",
+        "packageQuantityValue": "5",
+        "packageUnit": "kg",
+        "priceType": "total",
+        "priceValueMicroYuan": 220000000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 220000000,
+        "normalizedQuantityBase": 10000,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": 22000,
+        "confidence": 0.96,
+        "fieldConfidence": { "itemNameRaw": 0.98, "quantity": 0.95, "package": 0.96, "price": 0.97 },
+        "evidenceText": "去骨鸡腿 2袋×5kg 220.00",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：去骨鸡腿",
+        "status": "ready"
+      },
+      {
+        "lineNo": 2,
+        "itemNameRaw": "土豆",
+        "ingredientKey": "potato",
+        "quantityValue": "1",
+        "quantityUnit": "箱",
+        "packageSpecRaw": "1箱（未注明重量）",
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 96000000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 96000000,
+        "normalizedQuantityBase": null,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": null,
+        "confidence": 0.64,
+        "fieldConfidence": { "itemNameRaw": 0.96, "quantity": 0.94, "package": 0.18, "price": 0.91 },
+        "evidenceText": "土豆 1箱 96.00",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：土豆",
+        "status": "needs_confirmation"
+      },
+      {
+        "lineNo": 3,
+        "itemNameRaw": "五花肉",
+        "ingredientKey": "pork",
+        "quantityValue": "10",
+        "quantityUnit": "kg",
+        "packageSpecRaw": null,
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 352000000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 352000000,
+        "normalizedQuantityBase": 10000,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": 35200,
+        "confidence": 0.97,
+        "fieldConfidence": { "itemNameRaw": 0.98, "quantity": 0.98, "package": 0.95, "price": 0.97 },
+        "evidenceText": "五花肉 10kg 352.00",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：五花肉",
+        "status": "ready"
+      },
+      {
+        "lineNo": 4,
+        "itemNameRaw": "番茄",
+        "ingredientKey": "tomato",
+        "quantityValue": "8",
+        "quantityUnit": "kg",
+        "packageSpecRaw": null,
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 43200000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 43200000,
+        "normalizedQuantityBase": 8000,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": 5400,
+        "confidence": 0.96,
+        "fieldConfidence": { "itemNameRaw": 0.98, "quantity": 0.97, "package": 0.95, "price": 0.96 },
+        "evidenceText": "番茄 8kg 43.20",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：番茄",
+        "status": "ready"
+      },
+      {
+        "lineNo": 5,
+        "itemNameRaw": "鸡蛋",
+        "ingredientKey": "egg",
+        "quantityValue": "10",
+        "quantityUnit": "kg",
+        "packageSpecRaw": null,
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 99000000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 99000000,
+        "normalizedQuantityBase": 10000,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": 9900,
+        "confidence": 0.95,
+        "fieldConfidence": { "itemNameRaw": 0.97, "quantity": 0.96, "package": 0.94, "price": 0.95 },
+        "evidenceText": "鸡蛋 10kg 99.00",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：鸡蛋",
+        "status": "ready"
+      },
+      {
+        "lineNo": 6,
+        "itemNameRaw": "青椒",
+        "ingredientKey": "green_pepper",
+        "quantityValue": "5",
+        "quantityUnit": "kg",
+        "packageSpecRaw": null,
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 32400000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 32400000,
+        "normalizedQuantityBase": 5000,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": 6480,
+        "confidence": 0.95,
+        "fieldConfidence": { "itemNameRaw": 0.97, "quantity": 0.96, "package": 0.94, "price": 0.95 },
+        "evidenceText": "青椒 5kg 32.40",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：青椒",
+        "status": "ready"
+      },
+      {
+        "lineNo": 7,
+        "itemNameRaw": "牛肉末",
+        "ingredientKey": "beef",
+        "quantityValue": "3",
+        "quantityUnit": "kg",
+        "packageSpecRaw": null,
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 95400000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 95400000,
+        "normalizedQuantityBase": 3000,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": 31800,
+        "confidence": 0.95,
+        "fieldConfidence": { "itemNameRaw": 0.97, "quantity": 0.96, "package": 0.94, "price": 0.95 },
+        "evidenceText": "牛肉末 3kg 95.40",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：牛肉末",
+        "status": "ready"
+      },
+      {
+        "lineNo": 8,
+        "itemNameRaw": "豆腐",
+        "ingredientKey": "tofu",
+        "quantityValue": "5",
+        "quantityUnit": "kg",
+        "packageSpecRaw": null,
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 15000000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 15000000,
+        "normalizedQuantityBase": 5000,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": 3000,
+        "confidence": 0.96,
+        "fieldConfidence": { "itemNameRaw": 0.98, "quantity": 0.97, "package": 0.95, "price": 0.96 },
+        "evidenceText": "豆腐 5kg 15.00",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：豆腐",
+        "status": "ready"
+      },
+      {
+        "lineNo": 9,
+        "itemNameRaw": "大米",
+        "ingredientKey": "rice",
+        "quantityValue": "25",
+        "quantityUnit": "kg",
+        "packageSpecRaw": null,
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 150000000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 150000000,
+        "normalizedQuantityBase": 25000,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": 6000,
+        "confidence": 0.96,
+        "fieldConfidence": { "itemNameRaw": 0.98, "quantity": 0.97, "package": 0.95, "price": 0.96 },
+        "evidenceText": "大米 25kg 150.00",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：大米",
+        "status": "ready"
+      },
+      {
+        "lineNo": 10,
+        "itemNameRaw": "食用油",
+        "ingredientKey": "oil",
+        "quantityValue": "10",
+        "quantityUnit": "L",
+        "packageSpecRaw": null,
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 120000000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 120000000,
+        "normalizedQuantityBase": 10000,
+        "baseUnit": "ml",
+        "normalizedUnitPriceMicroYuan": 12000,
+        "confidence": 0.96,
+        "fieldConfidence": { "itemNameRaw": 0.98, "quantity": 0.97, "package": 0.95, "price": 0.96 },
+        "evidenceText": "食用油 10L 120.00",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：食用油",
+        "status": "ready"
+      },
+      {
+        "lineNo": 11,
+        "itemNameRaw": "花生米",
+        "ingredientKey": "peanuts",
+        "quantityValue": "2",
+        "quantityUnit": "kg",
+        "packageSpecRaw": null,
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 36000000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 36000000,
+        "normalizedQuantityBase": 2000,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": 18000,
+        "confidence": 0.96,
+        "fieldConfidence": { "itemNameRaw": 0.98, "quantity": 0.97, "package": 0.95, "price": 0.96 },
+        "evidenceText": "花生米 2kg 36.00",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：花生米",
+        "status": "ready"
+      },
+      {
+        "lineNo": 12,
+        "itemNameRaw": "黄瓜",
+        "ingredientKey": "cucumber",
+        "quantityValue": "3",
+        "quantityUnit": "kg",
+        "packageSpecRaw": null,
+        "packageQuantityValue": null,
+        "packageUnit": null,
+        "priceType": "total",
+        "priceValueMicroYuan": 15000000,
+        "priceUnit": "元",
+        "lineTotalMicroYuan": 15000000,
+        "normalizedQuantityBase": 3000,
+        "baseUnit": "g",
+        "normalizedUnitPriceMicroYuan": 5000,
+        "confidence": 0.96,
+        "fieldConfidence": { "itemNameRaw": 0.98, "quantity": 0.97, "package": 0.95, "price": 0.96 },
+        "evidenceText": "黄瓜 3kg 15.00",
+        "evidencePage": null,
+        "matchMethod": "exact_name",
+        "matchConfidence": 1,
+        "matchEvidence": "标准名称精确匹配：黄瓜",
+        "status": "ready"
+      }
+    ]
+  }
+}
