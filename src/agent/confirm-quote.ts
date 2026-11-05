@@ -15,6 +15,7 @@ type QuoteRow = {
   restaurant_id: number;
   supplier_id: number | null;
   quote_date: string | null;
+  status: string;
 };
 
 type ItemRow = {
@@ -46,12 +47,16 @@ type ConversionRow = {
 function getQuote(database: DatabaseSync, quoteId: number): QuoteRow {
   const quote = database
     .prepare(
-      "SELECT id, restaurant_id, supplier_id, quote_date FROM quotes WHERE id = ? LIMIT 1",
+      "SELECT id, restaurant_id, supplier_id, quote_date, status FROM quotes WHERE id = ? LIMIT 1",
     )
     .get(quoteId) as QuoteRow | undefined;
 
   if (!quote) {
     throw new Error("找不到这份报价。");
+  }
+
+  if (quote.status === "applied") {
+    throw new Error("这份报价的价格已经应用，不能继续确认。");
   }
 
   return quote;

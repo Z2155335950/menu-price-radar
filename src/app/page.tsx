@@ -9,16 +9,16 @@ import {
 
 const checks = [
   {
-    title: "页面可以打开",
-    detail: "Next.js App Router 已经接管首页渲染。",
+    title: "报价单可以读",
+    detail: "支持图片、电子 PDF 和粘贴文本，并保留原件、证据和置信度。",
   },
   {
-    title: "食材和包装可以确认",
-    detail: "规则自动匹配标准食材、换算单位和包装；不确定项会暂停等待确认。",
+    title: "风险清单可以看",
+    detail: "确认模糊项后，应用价格历史并计算成本、成本率和风险排序。",
   },
   {
-    title: "测试可以运行",
-    detail: "Vitest 已覆盖匹配、换算、确认、异常价格、文件提取和成本基线。",
+    title: "全链路可追溯",
+    detail: "报价、匹配、确认、改价、计算和建议都有审计记录与自动化测试。",
   },
 ];
 
@@ -132,14 +132,14 @@ export default function HomePage() {
                 id="checks-heading"
                 className="text-lg font-semibold tracking-tight"
               >
-                这一阶段已经打通
+                MVP 已经打通
               </h2>
               <p className="mt-1 text-sm text-stone-500">
-                只验证运行环境，不是业务界面。
+                从报价单读取到按毛利影响排序的完整链路。
               </p>
             </div>
             <span className="text-xs font-medium text-stone-400">
-              业务界面从第五阶段开始
+              12 / 12 · 可现场演示
             </span>
           </div>
 
@@ -165,7 +165,7 @@ export default function HomePage() {
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-5 text-xs text-stone-500">
           <p>当前只使用虚构演示数据，不包含真实餐厅或供应商信息。</p>
-          <p>下一步：成本计算引擎</p>
+          <p>MVP 已完成 · 可完整演示</p>
         </footer>
       </div>
     </main>

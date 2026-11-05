@@ -22,6 +22,7 @@ type QuoteRow = {
   restaurant_id: number;
   supplier_id: number | null;
   quote_date: string | null;
+  status: string;
 };
 
 type ItemRow = {
@@ -154,7 +155,7 @@ export function standardizeQuote(
     const quote = database
       .prepare(
         `
-          SELECT id, restaurant_id, supplier_id, quote_date
+          SELECT id, restaurant_id, supplier_id, quote_date, status
           FROM quotes
           WHERE id = ?
           LIMIT 1
@@ -164,6 +165,10 @@ export function standardizeQuote(
 
     if (!quote) {
       throw new Error("找不到这份报价。");
+    }
+
+    if (quote.status === "applied") {
+      throw new Error("这份报价的价格已经应用，不能重新标准化。");
     }
 
     const itemRows = database

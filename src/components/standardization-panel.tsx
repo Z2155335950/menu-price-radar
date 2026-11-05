@@ -7,6 +7,7 @@ import type {
   StandardizationResult,
   StandardizedItem,
 } from "@/domain/standardization";
+import AnalyzeButton from "./analyze-button";
 
 type StandardizationPanelProps = {
   quoteId: number;
@@ -453,7 +454,10 @@ export default function StandardizationPanel({
         </section>
       ) : (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          所有报价行已经匹配并完成归一化，可以进入成本计算。
+          <p>所有报价行已经匹配并完成归一化，可以进入成本计算。</p>
+          <div className="mt-3">
+            <AnalyzeButton quoteId={quoteId} />
+          </div>
         </div>
       )}
     </section>

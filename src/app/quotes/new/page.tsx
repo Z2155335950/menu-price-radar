@@ -46,7 +46,7 @@ export default function NewQuotePage() {
         <section className="grid gap-8 py-10 lg:grid-cols-[1fr_320px] lg:items-start">
           <div>
             <p className="mb-3 text-sm font-semibold tracking-wide text-emerald-800">
-              第七阶段 · 食材标准化与确认
+              报价处理 · 提取、匹配、确认
             </p>
             <h1 className="max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
               上传或粘贴报价，先确认
@@ -75,7 +75,7 @@ export default function NewQuotePage() {
 
         <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-5 text-xs text-stone-500">
           <p>报价原文、字段证据和置信度会一起保留。</p>
-          <p>下一步：成本计算引擎</p>
+          <p>下一步：应用价格并查看风险</p>
         </footer>
       </div>
     </main>
