@@ -7,6 +7,10 @@ import type {
   ExtractionResponse,
   ExtractionResponseItem,
 } from "@/domain/quote-extraction";
+import {
+  DEMO_QUOTE_IMAGE_PATH,
+  DEMO_QUOTE_PDF_PATH,
+} from "@/lib/demo-files";
 
 type QuoteExtractionFormProps = {
   sampleText: string;
@@ -34,6 +38,18 @@ function confidenceClass(value: number): string {
   }
 
   return "bg-red-50 text-red-700 ring-red-200";
+}
+
+function sourceTypeLabel(type: ExtractionResponse["sourceType"]): string {
+  if (type === "image") {
+    return "图片";
+  }
+
+  if (type === "pdf") {
+    return "PDF";
+  }
+
+  return "文本";
 }
 
 function questionLabel(type: ExtractionQuestion["type"]): string {
@@ -80,9 +96,11 @@ export default function QuoteExtractionForm({
   sampleText,
 }: QuoteExtractionFormProps) {
   const [text, setText] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [result, setResult] = useState<ExtractionResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   async function submitQuote() {
     setError(null);
@@ -126,6 +144,75 @@ export default function QuoteExtractionForm({
     }
   }
 
+  async function uploadFile(file: File) {
+    setError(null);
+    setResult(null);
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/quotes/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = (await response.json()) as
+        | ExtractionResponse
+        | { error?: string };
+
+      if (!response.ok) {
+        throw new Error(
+          "error" in payload && payload.error
+            ? payload.error
+            : "处理报价文件失败，请稍后重试。",
+        );
+      }
+
+      setResult(payload as ExtractionResponse);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "处理报价文件失败，请稍后重试。",
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  async function loadSampleFile(
+    path: string,
+    fileName: string,
+    mimeType: string,
+  ) {
+    setError(null);
+    setResult(null);
+    setIsUploading(true);
+
+    try {
+      const response = await fetch(path);
+
+      if (!response.ok) {
+        throw new Error("样例文件加载失败。");
+      }
+
+      const blob = await response.blob();
+      const file = new File([blob], fileName, { type: mimeType });
+      setSelectedFile(file);
+      setIsUploading(false);
+      await uploadFile(file);
+    } catch (sampleError) {
+      setIsUploading(false);
+      setError(
+        sampleError instanceof Error
+          ? sampleError.message
+          : "样例文件加载失败。",
+      );
+    }
+  }
+
   function loadSample() {
     setText(sampleText);
     setError(null);
@@ -134,17 +221,102 @@ export default function QuoteExtractionForm({
 
   function clearAll() {
     setText("");
+    setSelectedFile(null);
     setError(null);
     setResult(null);
   }
 
+  const isBusy = isSubmitting || isUploading;
+
   return (
     <div className="space-y-6">
+      <section className="rounded-3xl border border-emerald-200 bg-emerald-50/40 p-5 shadow-sm sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">
+              方式 A
+            </p>
+            <h2 className="mt-1 font-semibold tracking-tight">
+              上传图片或 PDF
+            </h2>
+            <p className="mt-1 max-w-2xl text-xs leading-6 text-stone-600">
+              图片在 mock 模式下只识别内置样例；电子 PDF 会先抽取文字层，
+              再走同一套结构化提取。扫描 PDF 请改用图片或粘贴文本。
+            </p>
+          </div>
+          <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs text-emerald-800">
+            JPEG / PNG / WebP / PDF · 最大 10 MB
+          </span>
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-100 bg-white p-4">
+          <label
+            htmlFor="quote-file"
+            className="cursor-pointer rounded-full border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 transition hover:border-emerald-200 hover:bg-emerald-50"
+          >
+            选择文件
+          </label>
+          <input
+            id="quote-file"
+            type="file"
+            accept=".png,.jpg,.jpeg,.webp,.pdf,image/png,image/jpeg,image/webp,application/pdf"
+            className="sr-only"
+            onChange={(event) =>
+              setSelectedFile(event.target.files?.[0] ?? null)
+            }
+          />
+
+          <span className="min-w-0 flex-1 truncate text-xs text-stone-500">
+            {selectedFile
+              ? `${selectedFile.name} · ${(selectedFile.size / 1024).toFixed(1)} KB`
+              : "还没有选择文件"}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => selectedFile && uploadFile(selectedFile)}
+            disabled={!selectedFile || isBusy}
+            className="rounded-full bg-emerald-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isUploading ? "正在识别…" : "上传并提取"}
+          </button>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-stone-500">没有文件？</span>
+          <button
+            type="button"
+            onClick={() =>
+              loadSampleFile(DEMO_QUOTE_IMAGE_PATH, "demo-quote.png", "image/png")
+            }
+            disabled={isBusy}
+            className="rounded-full bg-white px-3 py-1.5 font-medium text-emerald-800 ring-1 ring-emerald-200 transition hover:bg-emerald-50 disabled:opacity-50"
+          >
+            使用样例图片
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              loadSampleFile(DEMO_QUOTE_PDF_PATH, "demo-quote.pdf", "application/pdf")
+            }
+            disabled={isBusy}
+            className="rounded-full bg-white px-3 py-1.5 font-medium text-emerald-800 ring-1 ring-emerald-200 transition hover:bg-emerald-50 disabled:opacity-50"
+          >
+            使用样例 PDF
+          </button>
+        </div>
+      </section>
+
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-semibold tracking-tight">报价原文</h2>
+              <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">
+                方式 B
+              </p>
+              <h2 className="mt-1 font-semibold tracking-tight">
+                粘贴报价原文
+              </h2>
               <p className="mt-1 text-xs text-stone-500">
                 支持一行一个食材；至少包含供应商和报价日期。
               </p>
@@ -185,7 +357,7 @@ export default function QuoteExtractionForm({
               <button
                 type="button"
                 onClick={submitQuote}
-                disabled={isSubmitting || !text.trim()}
+                disabled={isBusy || !text.trim()}
                 className="rounded-full bg-emerald-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? "正在提取…" : "提取报价草稿"}
@@ -263,19 +435,26 @@ function ExtractionResult({ result }: { result: ExtractionResponse }) {
               {result.supplierNameRaw}
             </h2>
             <p className="mt-1 text-sm text-stone-500">
-              报价日期：{result.quoteDate} · 币种：{result.currency} ·
-              提供方：{result.provider}
+              报价日期：{result.quoteDate} · 币种：{result.currency} · 来源：
+              {sourceTypeLabel(result.sourceType)} · 提供方：{result.provider}
             </p>
           </div>
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-              needsConfirmation
-                ? "bg-amber-50 text-amber-800 ring-amber-200"
-                : "bg-emerald-50 text-emerald-800 ring-emerald-200"
-            }`}
-          >
-            {needsConfirmation ? "待确认" : "已提取"}
-          </span>
+          <div className="flex flex-wrap gap-2">
+            {result.sourceType !== "text" && result.provider === "mock" ? (
+              <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-600">
+                模拟识别
+              </span>
+            ) : null}
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+                needsConfirmation
+                  ? "bg-amber-50 text-amber-800 ring-amber-200"
+                  : "bg-emerald-50 text-emerald-800 ring-emerald-200"
+              }`}
+            >
+              {needsConfirmation ? "待确认" : "已提取"}
+            </span>
+          </div>
         </div>
 
         <div className="mt-4 rounded-2xl bg-stone-50 px-4 py-3 text-sm text-stone-600">
@@ -291,6 +470,44 @@ function ExtractionResult({ result }: { result: ExtractionResponse }) {
           </div>
         ) : null}
       </div>
+
+      {result.sourceType !== "text" && result.sourceUrl ? (
+        <section className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="font-semibold tracking-tight">报价原件</h2>
+              <p className="mt-1 text-xs text-stone-500">
+                原件已保存在本地，可随时核对。
+              </p>
+            </div>
+            <a
+              href={result.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-medium text-emerald-800 hover:underline"
+            >
+              在新窗口打开原件 ↗
+            </a>
+          </div>
+
+          <div className="mt-4 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50">
+            {result.sourceType === "image" ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={result.sourceUrl}
+                alt="上传的报价单原件"
+                className="mx-auto max-h-96 w-full object-contain"
+              />
+            ) : (
+              <iframe
+                src={result.sourceUrl}
+                title="上传的报价单 PDF"
+                className="h-96 w-full bg-white"
+              />
+            )}
+          </div>
+        </section>
+      ) : null}
 
       {result.questions.length > 0 ? (
         <section className="rounded-3xl border border-amber-200 bg-amber-50/70 p-5 sm:p-6">

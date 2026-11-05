@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, unlinkSync } from "node:fs";
+import { isAbsolute, relative, resolve } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 
@@ -528,21 +529,56 @@ export function seedDemoData(database: DatabaseSync): DemoSeedResult {
   };
 }
 
+function deleteSourceFiles(filePaths: string[]): void {
+  const uploadsRoot = resolve(process.cwd(), "data", "uploads");
+
+  for (const filePath of filePaths) {
+    const absolutePath = resolve(process.cwd(), filePath);
+    const relativeToUploads = relative(uploadsRoot, absolutePath);
+
+    if (
+      relativeToUploads.startsWith("..") ||
+      isAbsolute(relativeToUploads)
+    ) {
+      continue;
+    }
+
+    try {
+      unlinkSync(absolutePath);
+    } catch {
+      // 文件可能已经被手动删除；数据库重建不应因此失败。
+    }
+  }
+}
+
 /**
  * 删除“临江小馆”及其所有关联演示数据，然后重新导入。
- * 不会删除其他餐厅的数据。
+ * 不会删除其他餐厅的数据；会清理演示报价关联的上传原件。
  */
 export function resetDemoData(database: DatabaseSync): DemoResetResult {
   const existingRestaurantId = getDemoRestaurantId(database);
   let deleted = false;
+  let sourceFiles: string[] = [];
 
   if (existingRestaurantId !== null) {
+    const sourceRows = database
+      .prepare(
+        `
+          SELECT source_file_path
+          FROM quotes
+          WHERE restaurant_id = ? AND source_file_path IS NOT NULL
+        `,
+      )
+      .all(existingRestaurantId) as Array<{ source_file_path: string }>;
+    sourceFiles = sourceRows.map((row) => row.source_file_path);
+
     withTransaction(database, () => {
       database
         .prepare("DELETE FROM restaurants WHERE id = ?")
         .run(existingRestaurantId);
     });
     deleted = true;
+    deleteSourceFiles(sourceFiles);
   }
 
   const seeded = seedDemoData(database);

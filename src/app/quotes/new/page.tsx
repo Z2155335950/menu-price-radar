@@ -46,14 +46,14 @@ export default function NewQuotePage() {
         <section className="grid gap-8 py-10 lg:grid-cols-[1fr_320px] lg:items-start">
           <div>
             <p className="mb-3 text-sm font-semibold tracking-wide text-emerald-800">
-              第五阶段 · 报价文本提取
+              第六阶段 · 图片和 PDF 报价单
             </p>
             <h1 className="max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-              粘贴报价，先生成一份
+              上传或粘贴报价，先生成一份
               <span className="text-emerald-800">可核对的草稿。</span>
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600">
-              这一版只处理纯文本：提取食材、数量、包装、价格、单位和证据。
+              支持图片、电子 PDF 和纯文本：提取食材、数量、包装、价格、单位和证据。
               提取结果会保存为报价草稿，不会修改任何正式食材价格。
             </p>
           </div>
@@ -63,8 +63,8 @@ export default function NewQuotePage() {
               本阶段边界
             </p>
             <ul className="mt-3 space-y-2 text-stone-600">
-              <li>· 只支持粘贴文本</li>
-              <li>· 默认 mock，不需要 AI Key</li>
+              <li>· 图片、电子 PDF、粘贴文本</li>
+              <li>· mock 样例图片和电子 PDF 可直接演示</li>
               <li>· 低置信度字段会变成确认问题</li>
               <li>· 不计算成本，不改价</li>
             </ul>
@@ -75,7 +75,7 @@ export default function NewQuotePage() {
 
         <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-5 text-xs text-stone-500">
           <p>报价原文、字段证据和置信度会一起保留。</p>
-          <p>下一步：图片和 PDF 报价单</p>
+          <p>下一步：食材标准化与确认</p>
         </footer>
       </div>
     </main>

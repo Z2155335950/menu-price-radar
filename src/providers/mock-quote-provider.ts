@@ -7,12 +7,13 @@ import type { QuoteExtractionProvider } from "./quote-extraction-provider";
 const PRICE_AT_END = /(\d{1,12}(?:\.\d{1,6})?)\s*元?\s*$/;
 const DATE_PATTERN =
   /(?:报价日期|日期)[：:]\s*(\d{4})[-./年](\d{1,2})[-./月](\d{1,2})/;
+const GENERIC_DATE_PATTERN = /(\d{4})[-./年](\d{1,2})[-./月](\d{1,2})/;
 const PACKAGE_UNITS = new Set(["箱", "袋", "包", "件"]);
 const QUANTITY_PATTERN =
   /^(\d+(?:\.\d+)?)\s*([^\s×xX*]+)?(?:\s*[×xX*]\s*(\d+(?:\.\d+)?)\s*([^\s]+))?/;
 
 function parseQuoteDate(text: string): string | null {
-  const match = DATE_PATTERN.exec(text);
+  const match = DATE_PATTERN.exec(text) ?? GENERIC_DATE_PATTERN.exec(text);
 
   if (!match) {
     return null;
@@ -58,7 +59,11 @@ export class MockQuoteExtractionProvider implements QuoteExtractionProvider {
     const warnings: string[] = [];
 
     for (const line of lines) {
-      if (DATE_PATTERN.test(line) || /合计/.test(line)) {
+      if (
+        DATE_PATTERN.test(line) ||
+        GENERIC_DATE_PATTERN.test(line) ||
+        /报价单|合计/.test(line)
+      ) {
         continue;
       }
 

@@ -9,19 +9,19 @@
 
 | 项目 | 状态 |
 |---|---|
-| 当前阶段 | 第五阶段完成 |
-| 项目进度 | 5 / 12 |
+| 当前阶段 | 第六阶段完成 |
+| 项目进度 | 6 / 12 |
 | 可运行应用 | 是 |
-| 业务功能 | 报价文本粘贴、mock 提取、草稿保存 |
-| 数据库 | 15 张表；演示数据已导入；提取会新增报价草稿 |
+| 业务功能 | 图片、电子 PDF、文本上传提取；草稿保存；原件预览 |
+| 数据库 | 15 张表；演示数据已导入；上传文件保存在 `data/uploads` |
 | AI Key | 不需要；当前为 mock 模式 |
 | Node.js | 24.22.1 |
 
 > 首页仍是运行骨架；真正的报价输入页面在 `/quotes/new`。  
-> 第六阶段会加入图片和 PDF 报价单。  
-> 当前 mock 解析器只支持“食材 + 数量/包装 + 价格”的简单行；真实模型可通过 `AI_MODE=openai-compatible` 切换，但当前没有真实 Key 可做联调。
+> 第七阶段会做食材标准化、单位换算和用户确认。  
+> 当前 mock 模式只识别内置样例图片；电子 PDF 会真实抽取文字层；任意图片需要配置视觉模型。
 
-![第五阶段报价文本提取首页](docs/assets/stage5-home.png)
+![第六阶段上传报价页面](docs/assets/stage6-quote-upload.png)
 
 ---
 
@@ -39,10 +39,16 @@ npm run dev
 然后打开：
 
 - 首页：http://localhost:3000
-- 报价文本页：http://localhost:3000/quotes/new
+- 报价页：http://localhost:3000/quotes/new
 - 健康检查：http://localhost:3000/api/health
 
-在报价文本页点击“使用样例文本”，再点击“提取报价草稿”，会得到 12 行结构化结果和 1 个土豆包装确认问题。
+在报价页可以：
+
+- 点击“使用样例图片”上传 PNG；
+- 点击“使用样例 PDF”上传电子 PDF；
+- 点击“使用样例文本”并提取纯文本。
+
+三种方式都会得到 12 行结构化结果和 1 个土豆包装确认问题。图片/PDF 还会显示原件预览。
 
 健康检查会真实打开一个内存 SQLite 数据库并执行 `SELECT 1`。正常结果类似：
 
@@ -50,8 +56,8 @@ npm run dev
 {
   "status": "ok",
   "app": "菜价雷达",
-  "stage": 5,
-  "stageLabel": "报价文本提取",
+  "stage": 6,
+  "stageLabel": "图片和 PDF 报价单",
   "database": "ok",
   "checkedAt": "2026-11-05T05:15:52.808Z"
 }
@@ -139,12 +145,14 @@ src/app/                页面和接口
   page.tsx              当前运行骨架首页
   layout.tsx            全站布局和元数据
   globals.css           Tailwind 入口和基础样式
-  quotes/new/page.tsx   报价文本输入页
+  quotes/new/page.tsx   报价输入页（图片/PDF/文本）
   api/health/route.ts   服务端健康检查
   api/quotes/extract/   报价文本提取 API
+  api/quotes/upload/    图片/PDF 上传提取 API
+  api/quotes/[id]/source/  原件预览 API
 
 src/components/         界面组件
-  quote-extraction-form.tsx  粘贴、提取、结果展示
+  quote-extraction-form.tsx  上传、粘贴、提取、原件预览
 
 src/domain/             纯业务规则
   normalize.ts          名称标准化
@@ -152,12 +160,16 @@ src/domain/             纯业务规则
   quote-extraction.ts   提取 schema、置信度和问题类型
 
 src/agent/              Agent 编排
-  extract-quote.ts      提取、校验、保存草稿和审计
+  extract-quote.ts      文本提取入口
+  extract-quote-file.ts 图片/PDF 提取入口
+  save-quote-draft.ts   共享草稿保存和审计逻辑
 
 src/providers/          AI/解析适配层
-  quote-extraction-provider.ts  提供方接口
+  quote-extraction-provider.ts  文本提供方接口
   mock-quote-provider.ts        mock 确定性解析
-  openai-quote-provider.ts      OpenAI-compatible 适配器
+  openai-quote-provider.ts      OpenAI-compatible 文本适配器
+  quote-vision-provider.ts      视觉提供方接口
+  openai-vision-provider.ts     OpenAI-compatible 视觉适配器
   index.ts                      模式选择
 
 src/db/                 数据模型和访问基础设施
@@ -175,6 +187,9 @@ src/lib/                通用基础设施
   app-meta.ts           项目名称、阶段等常量
   health.ts             SQLite 连通性检查
   demo-quote-text.ts    演示报价文本
+  demo-files.ts         样例图片哈希和样例路径
+  quote-files.ts        上传保存、路径校验和原件读取
+  pdf.ts                电子 PDF 文字层提取
 
 scripts/                数据库和演示命令
   db-migrate.mjs        执行迁移
@@ -187,16 +202,22 @@ tests/                  测试
   db-migration.test.ts  迁移、约束和事务测试
   demo-seed.test.ts     演示数据、成本基线和重置测试
   money.test.ts         金额字符串精度测试
-  extraction.test.ts    提取、置信度、草稿保存测试
+  extraction.test.ts    文本提取、置信度、草稿保存测试
+  file-extraction.test.ts 图片/PDF 上传和原件测试
 
 docs/                   产品、计划、数据模型、演示文档
-data/                   本地 SQLite 和固定演示数据
+data/                   本地 SQLite、固定演示数据和上传原件
   app.db                本地数据库（被 Git 忽略）
   fixtures/
     demo-seed.json      虚构餐厅、菜品、报价和价格历史
+  uploads/              运行时上传原件（被 Git 忽略）
+
+public/samples/         可下载的样例报价单
+  demo-quote.png
+  demo-quote.pdf
 ```
 
-后续还会增加 `public/` 等静态资源和更多业务模块，但不提前创建空目录。
+后续还会增加更多业务模块，但不提前创建空目录。
 
 ---
 
@@ -260,6 +281,7 @@ data/                   本地 SQLite 和固定演示数据
 | SQLite | Node 内置 | 本地数据持久化，单文件，易重置 |
 | SQL 迁移 | 001 | 表结构版本化和可重复建库 |
 | Zod | 4.6.7 | 提取 API 输入和模型输出校验 |
+| unpdf | 2.1.0 | 电子 PDF 文字层提取 |
 | Vitest | 5.1.0 | 单元测试和集成测试 |
 
 设计原则：
@@ -273,41 +295,40 @@ data/                   本地 SQLite 和固定演示数据
 
 ---
 
-## 第五阶段验证结果
+## 第六阶段验证结果
 
 | 检查项 | 结果 |
 |---|---|
-| 报价文本页 | HTTP 200，`/quotes/new` 可访问 |
-| 提取 API | HTTP 200，mock 模式无需 AI Key |
-| 提取报价行 | 12 行 |
-| 结构字段 | 食材、数量、包装、价格、单位、证据、置信度 |
+| 报价页 | HTTP 200，`/quotes/new` 可访问 |
+| 样例图片上传 | HTTP 200，来源类型 `image` |
+| 样例 PDF 上传 | HTTP 200，来源类型 `pdf` |
+| 图片 / PDF 提取行数 | 12 / 12 |
 | 待确认问题 | 1 个：土豆包装未注明重量 |
-| 新报价草稿 | 已保存；11 行可继续，1 行待确认 |
+| 原件预览 | 图片返回 `image/png`，PDF 返回 `application/pdf` |
+| 原件清理 | `demo:reset` 会删除演示报价关联的上传文件 |
 | 价格历史变化 | 不变，仍为 38 条 |
-| `npm test` | 22 个测试通过 |
+| `npm test` | 26 个测试通过 |
 | `npm run typecheck` | 通过 |
 | `npm run build` | 成功 |
-| 构建路由 | `/`、`/quotes/new`、`/api/health`、`/api/quotes/extract` |
-| 首页 HTTP 状态 | 200 |
-| `/api/health` HTTP 状态 | 200 |
+| 构建路由 | 新增 `/api/quotes/upload`、`/api/quotes/[id]/source` |
+| 首页 / 健康接口 | 200 |
 
 ---
 
 ## 下一步
 
-**第六阶段：图片和 PDF 报价单。**
+**第七阶段：食材标准化、单位换算和确认。**
 
-第六阶段会做：
+第七阶段会做：
 
-- 文件上传入口；
-- 保存报价原件；
-- 电子 PDF 文本提取；
-- 图片/扫描件交给多模态模型；
-- 保留页码、区域或截图证据；
-- 识别失败时回退到粘贴文本；
-- 仍然不自动改价。
+- 把“去骨鸡腿”“鸡腿”“土豆”“洋芋”等映射到标准食材；
+- 处理 kg、斤、箱、袋等单位/包装换算；
+- 对歧义给出候选和依据；
+- 让用户确认并记住别名/换算；
+- 把确认记录保存到数据库；
+- 仍然不改正式价格，直到确认完成。
 
-在进入第六阶段之前，先在 `/quotes/new` 点击“使用样例文本”，确认提取结果和土豆确认问题。
+在进入第七阶段之前，先在 `/quotes/new` 使用样例图片或 PDF，确认原件预览和 12 行提取结果。
 
 ---
 

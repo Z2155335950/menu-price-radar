@@ -67,6 +67,8 @@ export type ExtractionResponse = {
   supplierNameRaw: string;
   quoteDate: string;
   currency: "CNY";
+  sourceType: "text" | "image" | "pdf";
+  sourceUrl: string | null;
   items: ExtractionResponseItem[];
   questions: ExtractionQuestion[];
   warnings: string[];

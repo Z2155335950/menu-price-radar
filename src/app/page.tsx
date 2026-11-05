@@ -13,12 +13,12 @@ const checks = [
     detail: "Next.js App Router 已经接管首页渲染。",
   },
   {
-    title: "报价文本可以提取",
-    detail: "粘贴样例文本后，系统会生成带证据和置信度的报价草稿。",
+    title: "图片、PDF、文本都能提取",
+    detail: "上传样例图片或电子 PDF，系统会生成带证据和置信度的报价草稿。",
   },
   {
     title: "测试可以运行",
-    detail: "Vitest 已覆盖迁移、演示数据、金额换算、提取和 SQLite 连通性。",
+    detail: "Vitest 已覆盖迁移、演示数据、金额换算、文本/文件提取和 SQLite 连通性。",
   },
 ];
 
@@ -165,7 +165,7 @@ export default function HomePage() {
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-5 text-xs text-stone-500">
           <p>当前只使用虚构演示数据，不包含真实餐厅或供应商信息。</p>
-          <p>下一步：图片和 PDF 报价单</p>
+          <p>下一步：食材标准化与确认</p>
         </footer>
       </div>
     </main>

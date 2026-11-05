@@ -1,7 +1,7 @@
 import type { ExtractedQuote } from "../domain/quote-extraction";
 import type { QuoteExtractionProvider } from "./quote-extraction-provider";
 
-const SYSTEM_PROMPT = `
+export const QUOTE_EXTRACTION_SYSTEM_PROMPT = `
 你是供应商报价单提取器。只输出一个 JSON 对象，不要输出 Markdown 或解释。
 
 必须输出这些字段：
@@ -82,7 +82,10 @@ export class OpenAiQuoteExtractionProvider
           temperature: 0,
           response_format: { type: "json_object" },
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            {
+              role: "system",
+              content: QUOTE_EXTRACTION_SYSTEM_PROMPT,
+            },
             { role: "user", content: text },
           ],
         }),
