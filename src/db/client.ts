@@ -19,7 +19,10 @@ export function openDatabase(
   databasePath = process.env.DATABASE_PATH ?? DEFAULT_DATABASE_PATH,
 ): DatabaseSync {
   const resolvedPath =
-    databasePath === ":memory:" ? databasePath : resolve(databasePath);
+    databasePath === ":memory:"
+      ? databasePath
+      : // 路径来自运行时配置，不是构建期资源；避免 Turbopack 追踪整个项目。
+        resolve(/* turbopackIgnore: true */ databasePath);
 
   if (resolvedPath !== ":memory:") {
     mkdirSync(dirname(resolvedPath), { recursive: true });

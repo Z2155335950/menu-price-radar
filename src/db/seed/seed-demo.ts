@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import type { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 
+import { normalizeName } from "../../domain/normalize.ts";
 import { withTransaction } from "../transaction.ts";
 
 const DEMO_RESTAURANT_NAME = "临江小馆";
@@ -145,10 +146,6 @@ const EMPTY_COUNTS: DemoCounts = {
   quoteItems: 0,
   priceHistory: 0,
 };
-
-function normalizeName(value: string): string {
-  return value.trim().toLowerCase().replace(/\s+/g, "");
-}
 
 function loadDemoSeedData(): DemoSeedData {
   const parsed = JSON.parse(readFileSync(DEMO_SEED_PATH, "utf8")) as DemoSeedData;

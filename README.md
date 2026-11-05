@@ -9,18 +9,19 @@
 
 | 项目 | 状态 |
 |---|---|
-| 当前阶段 | 第四阶段完成 |
-| 项目进度 | 4 / 12 |
+| 当前阶段 | 第五阶段完成 |
+| 项目进度 | 5 / 12 |
 | 可运行应用 | 是 |
-| 业务功能 | 尚未开始 |
-| 数据库 | 15 张表；已导入 1 家虚构餐厅、15 道菜、38 种食材、12 行报价 |
+| 业务功能 | 报价文本粘贴、mock 提取、草稿保存 |
+| 数据库 | 15 张表；演示数据已导入；提取会新增报价草稿 |
 | AI Key | 不需要；当前为 mock 模式 |
 | Node.js | 24.22.1 |
 
-> 首页只是运行骨架，不是最终报价界面。  
-> 第五阶段开始做“粘贴报价文本 → 结构化提取”的最小页面。
+> 首页仍是运行骨架；真正的报价输入页面在 `/quotes/new`。  
+> 第六阶段会加入图片和 PDF 报价单。  
+> 当前 mock 解析器只支持“食材 + 数量/包装 + 价格”的简单行；真实模型可通过 `AI_MODE=openai-compatible` 切换，但当前没有真实 Key 可做联调。
 
-![第四阶段演示数据首页](docs/assets/stage4-home.png)
+![第五阶段报价文本提取首页](docs/assets/stage5-home.png)
 
 ---
 
@@ -38,7 +39,10 @@ npm run dev
 然后打开：
 
 - 首页：http://localhost:3000
+- 报价文本页：http://localhost:3000/quotes/new
 - 健康检查：http://localhost:3000/api/health
+
+在报价文本页点击“使用样例文本”，再点击“提取报价草稿”，会得到 12 行结构化结果和 1 个土豆包装确认问题。
 
 健康检查会真实打开一个内存 SQLite 数据库并执行 `SELECT 1`。正常结果类似：
 
@@ -46,8 +50,8 @@ npm run dev
 {
   "status": "ok",
   "app": "菜价雷达",
-  "stage": 4,
-  "stageLabel": "演示数据",
+  "stage": 5,
+  "stageLabel": "报价文本提取",
   "database": "ok",
   "checkedAt": "2026-11-05T05:15:52.808Z"
 }
@@ -135,7 +139,26 @@ src/app/                页面和接口
   page.tsx              当前运行骨架首页
   layout.tsx            全站布局和元数据
   globals.css           Tailwind 入口和基础样式
-  api/health/route.ts   服务端健康检查接口
+  quotes/new/page.tsx   报价文本输入页
+  api/health/route.ts   服务端健康检查
+  api/quotes/extract/   报价文本提取 API
+
+src/components/         界面组件
+  quote-extraction-form.tsx  粘贴、提取、结果展示
+
+src/domain/             纯业务规则
+  normalize.ts          名称标准化
+  money.ts              元字符串 → 整数微元
+  quote-extraction.ts   提取 schema、置信度和问题类型
+
+src/agent/              Agent 编排
+  extract-quote.ts      提取、校验、保存草稿和审计
+
+src/providers/          AI/解析适配层
+  quote-extraction-provider.ts  提供方接口
+  mock-quote-provider.ts        mock 确定性解析
+  openai-quote-provider.ts      OpenAI-compatible 适配器
+  index.ts                      模式选择
 
 src/db/                 数据模型和访问基础设施
   client.ts             SQLite 连接和 PRAGMA 设置
@@ -151,6 +174,7 @@ src/db/                 数据模型和访问基础设施
 src/lib/                通用基础设施
   app-meta.ts           项目名称、阶段等常量
   health.ts             SQLite 连通性检查
+  demo-quote-text.ts    演示报价文本
 
 scripts/                数据库和演示命令
   db-migrate.mjs        执行迁移
@@ -162,6 +186,8 @@ tests/                  测试
   health.test.ts        SQLite 和健康结果测试
   db-migration.test.ts  迁移、约束和事务测试
   demo-seed.test.ts     演示数据、成本基线和重置测试
+  money.test.ts         金额字符串精度测试
+  extraction.test.ts    提取、置信度、草稿保存测试
 
 docs/                   产品、计划、数据模型、演示文档
 data/                   本地 SQLite 和固定演示数据
@@ -170,15 +196,7 @@ data/                   本地 SQLite 和固定演示数据
     demo-seed.json      虚构餐厅、菜品、报价和价格历史
 ```
 
-后续会逐步增加：
-
-```text
-src/components/         可复用界面组件
-src/domain/             纯业务规则：单位、成本、风险
-src/agent/              Agent 状态机、编排、处理记录
-src/providers/          AI 适配层：mock / 真实模型
-public/                 静态资源
-```
+后续还会增加 `public/` 等静态资源和更多业务模块，但不提前创建空目录。
 
 ---
 
@@ -226,7 +244,7 @@ public/                 静态资源
 4. 麻婆豆腐 — 观察 — 36.00 元
 5. 番茄炒蛋 — 缺周销量，单独分组，不显示周损失金额
 
-这些数字会在第四阶段写入种子数据，在第八阶段用自动化测试锁死。
+这些数字已经在第四阶段写入种子数据，第八阶段会用成本引擎和自动化测试继续锁死。
 
 ---
 
@@ -241,6 +259,7 @@ public/                 静态资源
 | Tailwind CSS | 4.3.4 | 演示界面样式 |
 | SQLite | Node 内置 | 本地数据持久化，单文件，易重置 |
 | SQL 迁移 | 001 | 表结构版本化和可重复建库 |
+| Zod | 4.6.7 | 提取 API 输入和模型输出校验 |
 | Vitest | 5.1.0 | 单元测试和集成测试 |
 
 设计原则：
@@ -254,25 +273,21 @@ public/                 静态资源
 
 ---
 
-## 第四阶段验证结果
+## 第五阶段验证结果
 
 | 检查项 | 结果 |
 |---|---|
-| `npm run db:migrate` | 成功，Schema `001` |
-| `npm run seed` | 成功导入演示数据 |
-| `npm run seed` 第二次 | 未重复写入 |
-| `npm run demo:reset` | 删除并重建成功 |
-| 演示餐厅 | 临江小馆 |
-| 菜品 / 食材 / 报价行 | 15 / 38 / 12 |
-| 历史价格 | 38 条 |
-| 宫保鸡丁旧成本 | 10.00 元 |
-| 红烧肉旧成本 | 10.04 元 |
-| 青椒土豆丝旧成本 | 4.00 元 |
-| 麻婆豆腐旧成本 | 3.50 元 |
-| 番茄炒蛋旧成本 | 5.35 元 |
-| `npm test` | 15 个测试通过 |
+| 报价文本页 | HTTP 200，`/quotes/new` 可访问 |
+| 提取 API | HTTP 200，mock 模式无需 AI Key |
+| 提取报价行 | 12 行 |
+| 结构字段 | 食材、数量、包装、价格、单位、证据、置信度 |
+| 待确认问题 | 1 个：土豆包装未注明重量 |
+| 新报价草稿 | 已保存；11 行可继续，1 行待确认 |
+| 价格历史变化 | 不变，仍为 38 条 |
+| `npm test` | 22 个测试通过 |
 | `npm run typecheck` | 通过 |
 | `npm run build` | 成功 |
+| 构建路由 | `/`、`/quotes/new`、`/api/health`、`/api/quotes/extract` |
 | 首页 HTTP 状态 | 200 |
 | `/api/health` HTTP 状态 | 200 |
 
@@ -280,19 +295,19 @@ public/                 静态资源
 
 ## 下一步
 
-**第五阶段：报价文本提取。**
+**第六阶段：图片和 PDF 报价单。**
 
-第五阶段会做：
+第六阶段会做：
 
-- 粘贴报价文本的最小页面；
-- 一个“使用样例文本”按钮；
-- 提取 API 和 mock 模式；
-- 结构化提取结果表；
-- 每个字段的证据和置信度；
-- 低置信度字段的确认提示；
-- 提取后只生成草稿，不修改正式价格。
+- 文件上传入口；
+- 保存报价原件；
+- 电子 PDF 文本提取；
+- 图片/扫描件交给多模态模型；
+- 保留页码、区域或截图证据；
+- 识别失败时回退到粘贴文本；
+- 仍然不自动改价。
 
-在进入第五阶段之前，先运行 `npm run seed`，确认演示数据可以导入。
+在进入第六阶段之前，先在 `/quotes/new` 点击“使用样例文本”，确认提取结果和土豆确认问题。
 
 ---
 

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   APP_NAME,
   APP_TAGLINE,
@@ -11,12 +13,12 @@ const checks = [
     detail: "Next.js App Router 已经接管首页渲染。",
   },
   {
-    title: "演示数据已导入",
-    detail: "临江小馆：15 道菜、38 种食材、12 行报价。运行 npm run seed 可检查。",
+    title: "报价文本可以提取",
+    detail: "粘贴样例文本后，系统会生成带证据和置信度的报价草稿。",
   },
   {
     title: "测试可以运行",
-    detail: "Vitest 已覆盖迁移、演示数据、成本基线和 SQLite 连通性。",
+    detail: "Vitest 已覆盖迁移、演示数据、金额换算、提取和 SQLite 连通性。",
   },
 ];
 
@@ -58,14 +60,20 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                href="/quotes/new"
+                className="rounded-full bg-emerald-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
+              >
+                开始处理报价
+              </Link>
               <a
                 href="/api/health"
-                className="rounded-full bg-emerald-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
+                className="rounded-full border border-stone-200 bg-white px-4 py-3 text-sm font-medium text-stone-600 transition hover:bg-stone-50 hover:text-stone-900"
               >
                 查看健康检查
               </a>
-              <span className="rounded-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-600">
-                当前为 mock 模式，不需要 AI Key
+              <span className="text-sm text-stone-500">
+                mock 模式，不需要 AI Key
               </span>
             </div>
           </div>
@@ -157,7 +165,7 @@ export default function HomePage() {
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-5 text-xs text-stone-500">
           <p>当前只使用虚构演示数据，不包含真实餐厅或供应商信息。</p>
-          <p>下一步：报价文本提取</p>
+          <p>下一步：图片和 PDF 报价单</p>
         </footer>
       </div>
     </main>
