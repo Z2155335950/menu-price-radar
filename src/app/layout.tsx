@@ -6,6 +6,7 @@ import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from "@/lib/app-meta";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  applicationName: APP_NAME,
   title: `${APP_NAME} | ${APP_TAGLINE}`,
   description: APP_DESCRIPTION,
 };
@@ -17,7 +18,7 @@ type RootLayoutProps = Readonly<{
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body className="bg-canvas text-ink antialiased">{children}</body>
     </html>
   );
 }

@@ -408,7 +408,7 @@
   - `npm test`：43 个测试通过；
   - `npm run typecheck` 通过；
   - `npm run build` 成功，新增标准检查和确认路由；
-  - 页面截图：`docs/assets/stage7-confirmation-detail.png`。
+  - 页面截图：`docs/assets/redesign-quote-result.png`。
 - **技术选择**：
   - 匹配优先级：供应商/全局别名、标准名称；
   - 多候选指向不同食材时阻塞；
@@ -571,7 +571,7 @@
   - `/quotes/new` 完成上传、提取、匹配、确认；
   - `/quotes/[id]` 展示风险排序、菜品详情、报价证据、建议和时间线；
   - 已通过无头浏览器完整走通“样例文本 → 确认 20kg → 计算风险 → 看板”；
-  - 看板截图：`docs/assets/stage8-analysis-dashboard.png`。
+  - 看板截图：`docs/assets/redesign-report.png`。
 - **完成日期**：2026-11-05
 
 ### 阶段 12：测试、演示和交付

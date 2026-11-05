@@ -153,9 +153,7 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
 
       if (!response.ok) {
         throw new Error(
-          "error" in body && body.error
-            ? body.error
-            : "保存确认失败。",
+          "error" in body && body.error ? body.error : "保存确认失败。",
         );
       }
 
@@ -172,37 +170,37 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
   }
 
   return (
-    <article className="rounded-2xl border border-amber-200 bg-white/85 p-4">
+    <article className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900">
+        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
           {questionLabel(question.type)}
         </span>
-        <span className="text-xs text-stone-500">第 {question.lineNo} 行</span>
+        <span className="text-[11px] text-muted">第 {question.lineNo} 行</span>
         {!question.blocking ? (
-          <span className="rounded-full bg-stone-100 px-2 py-1 text-xs text-stone-500">
-            非阻塞
+          <span className="rounded-full bg-canvas px-2 py-0.5 text-[10px] text-muted">
+            提示
           </span>
         ) : null}
       </div>
 
-      <p className="mt-2 text-sm leading-6 text-stone-800">
+      <p className="mt-2 text-xs leading-5 text-ink-soft">
         {question.message}
       </p>
 
       {question.evidenceText ? (
-        <p className="mt-2 rounded-lg bg-stone-50 px-3 py-2 font-mono text-xs text-stone-500">
+        <p className="mt-2 rounded-md bg-canvas px-2.5 py-2 font-mono text-[10px] leading-5 text-muted">
           {question.evidenceText}
         </p>
       ) : null}
 
       {isMapping ? (
         <div className="mt-3 space-y-3">
-          <label className="block text-xs font-medium text-stone-600">
-            选择标准食材
+          <label className="block text-[11px] font-medium text-ink-soft">
+            标准食材
             <select
               value={ingredientId}
               onChange={(event) => setIngredientId(event.target.value)}
-              className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-xs text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/10"
             >
               <option value="">请选择</option>
               {question.options.map((option) => (
@@ -212,11 +210,12 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
               ))}
             </select>
           </label>
-          <label className="flex items-center gap-2 text-xs text-stone-600">
+          <label className="flex items-center gap-2 text-[11px] text-muted">
             <input
               type="checkbox"
               checked={remember}
               onChange={(event) => setRemember(event.target.checked)}
+              className="accent-brand"
             />
             记住这个别名，下次自动匹配
           </label>
@@ -225,23 +224,23 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
 
       {isPackage ? (
         <div className="mt-3 space-y-3">
-          <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
-            <label className="text-xs font-medium text-stone-600">
+          <div className="grid gap-2 sm:grid-cols-[1fr_110px]">
+            <label className="text-[11px] font-medium text-ink-soft">
               每{question.quantityUnit ?? "包装"}包含的数量
               <input
                 value={packageQuantity}
                 onChange={(event) => setPackageQuantity(event.target.value)}
                 inputMode="decimal"
                 placeholder="例如 20"
-                className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-xs text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/10"
               />
             </label>
-            <label className="text-xs font-medium text-stone-600">
+            <label className="text-[11px] font-medium text-ink-soft">
               单位
               <select
                 value={packageUnit}
                 onChange={(event) => setPackageUnit(event.target.value)}
-                className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-xs text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/10"
               >
                 {unitOptions(question.baseUnit).map((unit) => (
                   <option key={unit} value={unit}>
@@ -251,11 +250,12 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
               </select>
             </label>
           </div>
-          <label className="flex items-center gap-2 text-xs text-stone-600">
+          <label className="flex items-center gap-2 text-[11px] text-muted">
             <input
               type="checkbox"
               checked={remember}
               onChange={(event) => setRemember(event.target.checked)}
+              className="accent-brand"
             />
             记住这个包装换算，下次自动使用
           </label>
@@ -263,27 +263,25 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
       ) : null}
 
       {isAcknowledgment ? (
-        <p className="mt-3 text-xs text-stone-500">
-          确认后本次报价不再重复提示这个异常。
+        <p className="mt-3 text-[11px] leading-5 text-muted">
+          确认后，本次报价不再重复提示这个异常。
         </p>
       ) : null}
 
       {isInformational ? (
-        <p className="mt-3 text-xs text-stone-500">
-          这条信息不会阻塞后续，但会影响成本变化解释。
+        <p className="mt-3 text-[11px] leading-5 text-muted">
+          这条信息不会阻塞后续，但会影响成本变化的解释。
         </p>
       ) : null}
 
-      {error ? (
-        <p className="mt-2 text-xs text-red-600">{error}</p>
-      ) : null}
+      {error ? <p className="mt-2 text-[11px] text-red-600">{error}</p> : null}
 
       {!isInformational ? (
         <button
           type="button"
           onClick={submit}
           disabled={isSaving}
-          className="mt-3 rounded-full bg-emerald-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 disabled:opacity-50"
+          className="mt-3 rounded-lg bg-ink px-3.5 py-2 text-[11px] font-semibold text-white transition hover:bg-brand-strong disabled:opacity-50"
         >
           {isSaving ? "正在保存…" : "确认并继续"}
         </button>
@@ -297,22 +295,32 @@ export default function StandardizationPanel({
   result,
   onUpdated,
 }: StandardizationPanelProps) {
+  const progress =
+    result.summary.totalItems > 0
+      ? Math.round(
+          (result.summary.readyItems / result.summary.totalItems) * 100,
+        )
+      : 0;
+
   return (
     <section className="space-y-4">
-      <div className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(20,35,28,0.04)]">
+        <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-5 sm:px-6">
           <div>
-            <h2 className="font-semibold tracking-tight">
-              食材匹配和单位检查
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+              Step 03
+            </p>
+            <h2 className="mt-1 text-sm font-semibold tracking-tight text-ink">
+              食材与单位核对
             </h2>
-            <p className="mt-1 text-xs text-stone-500">
-              规则自动匹配标准食材并归一化价格；不确定的地方会停下来问。
+            <p className="mt-1 text-[11px] leading-5 text-muted">
+              规则完成匹配和归一化；不确定的地方会停下来询问。
             </p>
           </div>
           <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
+            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${
               result.status === "ready"
-                ? "bg-emerald-50 text-emerald-800 ring-emerald-200"
+                ? "bg-brand-soft text-brand-strong ring-brand/15"
                 : "bg-amber-50 text-amber-800 ring-amber-200"
             }`}
           >
@@ -320,106 +328,134 @@ export default function StandardizationPanel({
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">报价行</p>
-            <p className="mt-1 text-lg font-semibold">
+        <div className="grid grid-cols-2 border-y border-line sm:grid-cols-4">
+          <div className="border-b border-line p-4 sm:border-b-0 sm:border-r">
+            <p className="text-[10px] text-muted">报价行</p>
+            <p className="mt-1 text-lg font-semibold tabular">
               {result.summary.totalItems}
             </p>
           </div>
-          <div className="rounded-2xl bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">已匹配</p>
-            <p className="mt-1 text-lg font-semibold">
+          <div className="border-b border-line p-4 sm:border-b-0 sm:border-r">
+            <p className="text-[10px] text-muted">已匹配</p>
+            <p className="mt-1 text-lg font-semibold tabular">
               {result.summary.matchedItems}
             </p>
           </div>
-          <div className="rounded-2xl bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">可继续</p>
-            <p className="mt-1 text-lg font-semibold">
+          <div className="border-r border-line p-4">
+            <p className="text-[10px] text-muted">可继续</p>
+            <p className="mt-1 text-lg font-semibold tabular text-brand">
               {result.summary.readyItems}
             </p>
           </div>
-          <div className="rounded-2xl bg-stone-50 p-3">
-            <p className="text-xs text-stone-500">阻塞问题</p>
-            <p className="mt-1 text-lg font-semibold">
+          <div className="p-4">
+            <p className="text-[10px] text-muted">阻塞项</p>
+            <p className="mt-1 text-lg font-semibold tabular">
               {result.summary.blockingQuestions}
             </p>
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-stone-50 px-4 py-3 text-xs text-stone-600">
-          这一步只更新报价行的匹配和归一化字段，
-          <strong className="text-stone-900">仍然没有写入价格历史</strong>。
+        <div className="px-5 py-4 sm:px-6">
+          <div className="flex items-center justify-between gap-3 text-[10px] text-muted">
+            <span>核对进度</span>
+            <span className="tabular">{progress}%</span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-canvas">
+            <div
+              className="h-full rounded-full bg-brand transition-[width]"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="mt-2 text-[10px] leading-5 text-muted">
+            这一步只更新报价行的匹配和归一化字段，还没有写入价格历史。
+          </p>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(20,35,28,0.04)]">
+        <div className="flex items-center justify-between gap-2 border-b border-line px-5 py-4">
+          <div>
+            <h2 className="text-sm font-semibold tracking-tight">匹配明细</h2>
+            <p className="mt-1 text-[11px] text-muted">
+              原始名称、归一化结果和历史价格变化。
+            </p>
+          </div>
+          <span className="text-[11px] text-muted">
+            {result.items.length} 行
+          </span>
+        </div>
+
         <div className="overflow-x-auto">
-          <table className="min-w-[980px] w-full text-left text-sm">
-            <thead className="bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
+          <table className="w-full min-w-[980px] text-left text-sm">
+            <thead className="bg-canvas/70 text-[10px] uppercase tracking-[0.08em] text-muted">
               <tr>
                 <th className="px-4 py-3 font-medium">行</th>
                 <th className="px-4 py-3 font-medium">原始 → 标准食材</th>
-                <th className="px-4 py-3 font-medium">原始数量 / 包装</th>
-                <th className="px-4 py-3 font-medium">归一化数量</th>
+                <th className="px-4 py-3 font-medium">原始数量</th>
+                <th className="px-4 py-3 font-medium">归一化</th>
                 <th className="px-4 py-3 font-medium">单价</th>
                 <th className="px-4 py-3 font-medium">较历史价</th>
                 <th className="px-4 py-3 font-medium">状态</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="divide-y divide-line">
               {result.items.map((item) => (
                 <tr key={item.id} className="align-top">
-                  <td className="px-4 py-4 text-stone-400">{item.lineNo}</td>
-                  <td className="px-4 py-4">
-                    <p className="font-medium text-stone-900">
-                      {item.itemNameRaw}
-                    </p>
-                    <p className="mt-1 text-xs text-stone-500">
+                  <td className="px-4 py-3.5 text-[11px] tabular text-muted">
+                    {item.lineNo}
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <p className="font-medium text-ink">{item.itemNameRaw}</p>
+                    <p className="mt-0.5 text-[11px] text-brand">
                       {item.ingredientName ?? "未匹配"}
                     </p>
                     {item.matchEvidence ? (
-                      <p className="mt-1 text-xs text-stone-400">
+                      <p className="mt-0.5 text-[10px] text-muted">
                         {item.matchEvidence}
                       </p>
                     ) : null}
                   </td>
-                  <td className="px-4 py-4 text-stone-600">
+                  <td className="px-4 py-3.5 text-xs text-ink-soft">
                     <p>
                       {item.quantityValue ?? "—"} {item.quantityUnit ?? ""}
                     </p>
-                    <p className="mt-1 text-xs text-stone-400">
+                    <p className="mt-0.5 text-[10px] text-muted">
                       {item.packageQuantityValue && item.packageUnit
                         ? `${item.packageQuantityValue}${item.packageUnit}/包装`
                         : "包装未注明"}
                     </p>
                   </td>
-                  <td className="px-4 py-4 text-stone-600">
+                  <td className="px-4 py-3.5 text-xs text-ink-soft">
                     {quantityLabel(item)}
                   </td>
-                  <td className="px-4 py-4 font-medium text-stone-900">
+                  <td className="px-4 py-3.5 text-xs font-medium tabular text-ink">
                     {unitPriceLabel(item)}
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-3.5 text-xs tabular">
                     <span
                       className={
                         item.priceChangeRatio !== null &&
                         item.priceChangeRatio > 0
-                          ? "text-red-600"
-                          : "text-stone-500"
+                          ? "font-medium text-red-600"
+                          : "text-muted"
                       }
                     >
                       {changeLabel(item)}
                     </span>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-3.5">
                     <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                         item.status === "ready"
-                          ? "bg-emerald-50 text-emerald-800"
+                          ? "bg-brand-soft text-brand-strong"
                           : "bg-amber-50 text-amber-800"
                       }`}
                     >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          item.status === "ready" ? "bg-brand" : "bg-amber-500"
+                        }`}
+                      />
                       {item.status === "ready" ? "可继续" : "待确认"}
                     </span>
                   </td>
@@ -431,17 +467,17 @@ export default function StandardizationPanel({
       </div>
 
       {result.questions.length > 0 ? (
-        <section className="rounded-3xl border border-amber-200 bg-amber-50/70 p-5 sm:p-6">
+        <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold tracking-tight text-amber-950">
-              需要你确认的 {result.questions.length} 项
+            <h2 className="text-sm font-semibold text-amber-950">
+              需要你确认 {result.questions.length} 项
             </h2>
-            <span className="text-xs text-amber-700">
-              确认后才可能进入成本计算
+            <span className="text-[11px] text-amber-800">
+              确认后才能应用价格
             </span>
           </div>
 
-          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <div className="mt-3 grid gap-3 lg:grid-cols-2">
             {result.questions.map((item) => (
               <QuestionCard
                 key={item.id}
@@ -453,11 +489,19 @@ export default function StandardizationPanel({
           </div>
         </section>
       ) : (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          <p>所有报价行已经匹配并完成归一化，可以进入成本计算。</p>
-          <div className="mt-3">
-            <AnalyzeButton quoteId={quoteId} />
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-brand-strong p-5 text-white">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/55">
+              Ready for analysis
+            </p>
+            <h2 className="mt-1 text-sm font-semibold">
+              全部报价行已完成核对
+            </h2>
+            <p className="mt-1 text-[11px] leading-5 text-white/70">
+              下一步会应用价格历史，并生成成本和风险快照。
+            </p>
           </div>
+          <AnalyzeButton quoteId={quoteId} tone="light" />
         </div>
       )}
     </section>

@@ -21,7 +21,7 @@
 > 当前 mock 模式只识别内置样例图片；电子 PDF 会真实抽取文字层；任意图片需要配置视觉模型。  
 > 计算的是核心食材成本，不是房租、人工和水电后的净利润。
 
-![最终毛利风险看板](docs/assets/stage8-analysis-dashboard.png)
+![最终毛利风险看板](docs/assets/redesign-report.png)
 
 ---
 
