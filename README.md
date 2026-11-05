@@ -9,18 +9,18 @@
 
 | 项目 | 状态 |
 |---|---|
-| 当前阶段 | 第二阶段完成 |
-| 项目进度 | 2 / 12 |
+| 当前阶段 | 第三阶段完成 |
+| 项目进度 | 3 / 12 |
 | 可运行应用 | 是 |
 | 业务功能 | 尚未开始 |
-| 数据库 | SQLite 驱动已验证；业务表尚未创建 |
+| 数据库 | 已建立 15 张表；Schema 版本 `001` |
 | AI Key | 不需要；当前为 mock 模式 |
 | Node.js | 24.22.1 |
 
 > 首页只是运行骨架，不是最终报价界面。  
-> 第三阶段才会开始建业务数据模型。
+> 第四阶段会导入虚构餐厅、菜品和报价演示数据。
 
-![第二阶段运行骨架首页](docs/assets/stage2-home.png)
+![第三阶段运行骨架首页](docs/assets/stage3-home.png)
 
 ---
 
@@ -30,6 +30,7 @@
 
 ```powershell
 npm install
+npm run db:migrate
 npm run dev
 ```
 
@@ -44,20 +45,22 @@ npm run dev
 {
   "status": "ok",
   "app": "菜价雷达",
-  "stage": 2,
-  "stageLabel": "运行环境和项目骨架",
+  "stage": 3,
+  "stageLabel": "核心数据模型",
   "database": "ok",
   "checkedAt": "2026-11-05T05:15:52.808Z"
 }
 ```
 
-### 其他命令
+### 数据库命令和其他命令
 
 ```powershell
-npm test          # 运行 Vitest 测试
-npm run typecheck # TypeScript 类型检查
-npm run build     # 生产构建
-npm run start     # 启动生产构建
+npm run db:migrate # 创建或升级 data/app.db
+npm run db:tables  # 列出数据库表
+npm test           # 运行 Vitest 测试
+npm run typecheck  # TypeScript 类型检查
+npm run build      # 生产构建
+npm run start      # 启动生产构建
 ```
 
 当前要求 Node.js 24 或更高版本，因为数据库驱动使用 Node 内置的 `node:sqlite`。
@@ -131,16 +134,29 @@ src/app/                页面和接口
   globals.css           Tailwind 入口和基础样式
   api/health/route.ts   服务端健康检查接口
 
+src/db/                 数据模型和访问基础设施
+  client.ts             SQLite 连接和 PRAGMA 设置
+  migrate.ts            迁移运行器
+  inspect.ts            表名和迁移版本检查
+  transaction.ts        事务包装
+  types.ts              基础单位、状态和风险等级
+  migrations/
+    001_initial.sql     14 张业务/审计表
+
 src/lib/                通用基础设施
   app-meta.ts           项目名称、阶段等常量
   health.ts             SQLite 连通性检查
 
+scripts/                数据库命令
+  db-migrate.mjs        执行迁移
+  db-tables.mjs         列出表
+
 tests/                  测试
   health.test.ts        SQLite 和健康结果测试
+  db-migration.test.ts  迁移、约束和事务测试
 
-docs/                   产品、计划、演示文档
-data/                   后续存放 SQLite 和上传原件（尚未创建）
-scripts/                后续存放初始化脚本（尚未创建）
+docs/                   产品、计划、数据模型、演示文档
+data/                   本地 SQLite 文件（数据库被 Git 忽略）
 ```
 
 后续会逐步增加：
@@ -150,7 +166,6 @@ src/components/         可复用界面组件
 src/domain/             纯业务规则：单位、成本、风险
 src/agent/              Agent 状态机、编排、处理记录
 src/providers/          AI 适配层：mock / 真实模型
-src/db/                 数据模型、迁移、查询、事务
 public/                 静态资源
 ```
 
@@ -161,6 +176,7 @@ public/                 静态资源
 | 文档 | 先看什么 | 作用 |
 |---|---|---|
 | [`docs/AGENT_SPEC.md`](docs/AGENT_SPEC.md) | 第 1、3、6、8、11 节 | 产品范围、Agent 流程、确认规则、计算公式、验收标准 |
+| [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md) | 第 1、2、18 节 | 每张表、每个字段、表关系和迁移说明 |
 | [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) | 第 2、3、5 节 | 12 个阶段、当前进度、每阶段验收和需求追踪 |
 | [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | 第 1、2、3 节 | 7 分钟现场演示、虚构数据、预期结果和兜底方案 |
 | `README.md` | 当前页 | 项目入口、启动方式和当前状态 |
@@ -213,6 +229,7 @@ public/                 静态资源
 | TypeScript | 5.9.3 | 数据结构、接口和计算类型 |
 | Tailwind CSS | 4.3.4 | 演示界面样式 |
 | SQLite | Node 内置 | 本地数据持久化，单文件，易重置 |
+| SQL 迁移 | 001 | 表结构版本化和可重复建库 |
 | Vitest | 5.1.0 | 单元测试和集成测试 |
 
 设计原则：
@@ -226,12 +243,14 @@ public/                 静态资源
 
 ---
 
-## 第二阶段验证结果
+## 第三阶段验证结果
 
 | 检查项 | 结果 |
 |---|---|
 | `npm install` | 成功 |
-| `npm test` | 2 个测试通过 |
+| `npm run db:migrate` | 成功，Schema `001` |
+| `npm run db:tables` | 15 张表 |
+| `npm test` | 9 个测试通过 |
 | `npm run typecheck` | 通过 |
 | `npm run build` | 成功 |
 | `npm run dev` | 启动成功 |
@@ -244,19 +263,19 @@ public/                 静态资源
 
 ## 下一步
 
-**第三阶段：核心数据模型。**
+**第四阶段：演示数据。**
 
-第三阶段会创建：
+第四阶段会导入：
 
-- 餐厅、供应商、标准食材、食材别名；
-- 单位换算；
-- 报价和报价行；
-- 价格历史；
-- 菜品和菜谱用量；
-- 用户确认、分析快照和审计事件；
-- `docs/DATA_MODEL.md`。
+- 一家虚构餐厅“临江小馆”；
+- 15 道菜；
+- 20 种以上标准食材；
+- 供应商和价格历史；
+- 12 行供应商报价；
+- 宫保鸡丁、红烧肉、青椒土豆丝等预期风险结果；
+- 一键重置演示数据的命令。
 
-在进入第三阶段之前，先把首页和健康检查跑一遍，确认运行环境正常。
+在进入第四阶段之前，先运行 `npm run db:tables`，确认 15 张表已经存在。
 
 ---
 

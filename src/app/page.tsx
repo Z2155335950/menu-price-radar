@@ -11,12 +11,12 @@ const checks = [
     detail: "Next.js App Router 已经接管首页渲染。",
   },
   {
-    title: "服务端可以查询 SQLite",
-    detail: "健康接口会打开内存数据库并执行 SELECT 1。",
+    title: "数据模型已建立",
+    detail: "运行 npm run db:tables 可以看到 15 张表；数据库文件是 data/app.db。",
   },
   {
     title: "测试可以运行",
-    detail: "Vitest 已覆盖 SQLite 连通性和健康状态结构。",
+    detail: "Vitest 已覆盖迁移、外键、唯一约束、事务和 SQLite 连通性。",
   },
 ];
 
@@ -79,7 +79,7 @@ export default function HomePage() {
               <div className="flex items-center justify-between py-3">
                 <dt className="text-sm text-stone-500">当前阶段</dt>
                 <dd className="text-sm font-semibold text-stone-900">
-                  02 / 12
+                  {String(CURRENT_STAGE).padStart(2, "0")} / 12
                 </dd>
               </div>
               <div className="flex items-center justify-between py-3">
@@ -93,6 +93,10 @@ export default function HomePage() {
                 <dd className="text-sm font-semibold text-stone-900">
                   node:sqlite
                 </dd>
+              </div>
+              <div className="flex items-center justify-between py-3">
+                <dt className="text-sm text-stone-500">Schema</dt>
+                <dd className="text-sm font-semibold text-stone-900">001</dd>
               </div>
               <div className="flex items-center justify-between py-3">
                 <dt className="text-sm text-stone-500">AI 模式</dt>
@@ -123,7 +127,7 @@ export default function HomePage() {
               </p>
             </div>
             <span className="text-xs font-medium text-stone-400">
-              业务功能从第三阶段开始
+              业务界面从第五阶段开始
             </span>
           </div>
 
@@ -149,7 +153,7 @@ export default function HomePage() {
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-5 text-xs text-stone-500">
           <p>当前只使用虚构演示数据，不包含真实餐厅或供应商信息。</p>
-          <p>下一步：核心数据模型</p>
+          <p>下一步：演示数据</p>
         </footer>
       </div>
     </main>
