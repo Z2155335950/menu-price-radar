@@ -9,16 +9,58 @@
 
 | 项目 | 状态 |
 |---|---|
-| 当前阶段 | 第一阶段完成 |
-| 项目进度 | 1 / 12 |
-| 当前产物 | 产品规格、阶段计划、演示脚本、本说明 |
-| 可运行应用 | 还没有 |
-| 业务代码 | 尚未创建 |
-| 数据库 | 尚未创建 |
-| AI Key | 不需要；后续默认支持 mock 模式 |
+| 当前阶段 | 第二阶段完成 |
+| 项目进度 | 2 / 12 |
+| 可运行应用 | 是 |
+| 业务功能 | 尚未开始 |
+| 数据库 | SQLite 驱动已验证；业务表尚未创建 |
+| AI Key | 不需要；当前为 mock 模式 |
+| Node.js | 24.22.1 |
 
-> 现在只有文档，没有 `package.json`，所以还不能启动网页。  
-> 第二阶段才会创建 Next.js 项目骨架。
+> 首页只是运行骨架，不是最终报价界面。  
+> 第三阶段才会开始建业务数据模型。
+
+![第二阶段运行骨架首页](docs/assets/stage2-home.png)
+
+---
+
+## 快速启动
+
+在项目根目录 `D:\hack\deepseek` 打开 PowerShell：
+
+```powershell
+npm install
+npm run dev
+```
+
+然后打开：
+
+- 首页：http://localhost:3000
+- 健康检查：http://localhost:3000/api/health
+
+健康检查会真实打开一个内存 SQLite 数据库并执行 `SELECT 1`。正常结果类似：
+
+```json
+{
+  "status": "ok",
+  "app": "菜价雷达",
+  "stage": 2,
+  "stageLabel": "运行环境和项目骨架",
+  "database": "ok",
+  "checkedAt": "2026-11-05T05:15:52.808Z"
+}
+```
+
+### 其他命令
+
+```powershell
+npm test          # 运行 Vitest 测试
+npm run typecheck # TypeScript 类型检查
+npm run build     # 生产构建
+npm run start     # 启动生产构建
+```
+
+当前要求 Node.js 24 或更高版本，因为数据库驱动使用 Node 内置的 `node:sqlite`。
 
 ---
 
@@ -80,6 +122,40 @@
 
 ---
 
+## 当前目录
+
+```text
+src/app/                页面和接口
+  page.tsx              当前运行骨架首页
+  layout.tsx            全站布局和元数据
+  globals.css           Tailwind 入口和基础样式
+  api/health/route.ts   服务端健康检查接口
+
+src/lib/                通用基础设施
+  app-meta.ts           项目名称、阶段等常量
+  health.ts             SQLite 连通性检查
+
+tests/                  测试
+  health.test.ts        SQLite 和健康结果测试
+
+docs/                   产品、计划、演示文档
+data/                   后续存放 SQLite 和上传原件（尚未创建）
+scripts/                后续存放初始化脚本（尚未创建）
+```
+
+后续会逐步增加：
+
+```text
+src/components/         可复用界面组件
+src/domain/             纯业务规则：单位、成本、风险
+src/agent/              Agent 状态机、编排、处理记录
+src/providers/          AI 适配层：mock / 真实模型
+src/db/                 数据模型、迁移、查询、事务
+public/                 静态资源
+```
+
+---
+
 ## 文档导览
 
 | 文档 | 先看什么 | 作用 |
@@ -87,7 +163,7 @@
 | [`docs/AGENT_SPEC.md`](docs/AGENT_SPEC.md) | 第 1、3、6、8、11 节 | 产品范围、Agent 流程、确认规则、计算公式、验收标准 |
 | [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) | 第 2、3、5 节 | 12 个阶段、当前进度、每阶段验收和需求追踪 |
 | [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) | 第 1、2、3 节 | 7 分钟现场演示、虚构数据、预期结果和兜底方案 |
-| `README.md` | 当前页 | 项目入口和快速理解 |
+| `README.md` | 当前页 | 项目入口、启动方式和当前状态 |
 
 推荐阅读顺序：
 
@@ -127,18 +203,17 @@
 
 ---
 
-## 计划中的技术方案
+## 技术栈
 
-| 技术 | 负责什么 |
-|---|---|
-| Next.js + React | 页面、服务端 API、构建和启动 |
-| TypeScript | 数据结构、接口和计算类型 |
-| Tailwind CSS | 演示界面样式 |
-| SQLite（Node 内置 `node:sqlite`） | 本地数据持久化，单文件，易重置 |
-| SQL 迁移 + 数据访问层 | 表结构和查询，透明可测试 |
-| Zod | 校验 API 输入和 AI 输出 |
-| 自定义 AI 适配层 | 默认 mock；真实模型可替换；图片/PDF 依赖多模态模型 |
-| Vitest | 成本、单位、排序和工作流测试 |
+| 技术 | 版本 | 负责什么 |
+|---|---|---|
+| Node.js | 24.22.1 | 运行环境；内置 `node:sqlite` |
+| Next.js | 16.4.5 | 页面、服务端 API、构建和启动 |
+| React | 19.3.1 | 页面组件 |
+| TypeScript | 5.9.3 | 数据结构、接口和计算类型 |
+| Tailwind CSS | 4.3.4 | 演示界面样式 |
+| SQLite | Node 内置 | 本地数据持久化，单文件，易重置 |
+| Vitest | 5.1.0 | 单元测试和集成测试 |
 
 设计原则：
 
@@ -151,50 +226,37 @@
 
 ---
 
-## 计划中的顶层目录
+## 第二阶段验证结果
 
-```text
-src/app/          页面和接口
-src/components/   可复用界面组件
-src/domain/       纯业务规则：单位、成本、风险
-src/agent/        Agent 状态机、编排、处理记录
-src/providers/    AI 适配层：mock / 真实模型
-src/db/           数据模型、迁移、查询、事务
-src/lib/          环境变量、ID、日期、错误处理
-data/             SQLite 文件、上传原件、演示样例
-scripts/          初始化、种子数据、重置演示
-tests/            单元测试和集成测试
-docs/             产品、计划、数据模型、演示文档
-public/           静态资源
-```
-
-这些目录会在后续阶段逐步创建，不是现在一次性生成。
+| 检查项 | 结果 |
+|---|---|
+| `npm install` | 成功 |
+| `npm test` | 2 个测试通过 |
+| `npm run typecheck` | 通过 |
+| `npm run build` | 成功 |
+| `npm run dev` | 启动成功 |
+| 首页 HTTP 状态 | 200 |
+| `/api/health` HTTP 状态 | 200 |
+| 健康检查中的 SQLite | `ok` |
+| Git 仓库 | 已初始化 |
 
 ---
 
-## 当前进度和下一步
+## 下一步
 
-**已完成：第一阶段**
+**第三阶段：核心数据模型。**
 
-- 明确产品定位、用户、输入输出和 MVP 边界；
-- 明确 AI 与代码的职责边界；
-- 固定成本公式、缺失数据处理和风险排序原则；
-- 固定用户确认和审计要求；
-- 设计 7 分钟演示脚本和虚构数据目标；
-- 拆出 12 个可独立验收的阶段。
+第三阶段会创建：
 
-**下一步：第二阶段，运行环境和项目骨架**
+- 餐厅、供应商、标准食材、食材别名；
+- 单位换算；
+- 报价和报价行；
+- 价格历史；
+- 菜品和菜谱用量；
+- 用户确认、分析快照和审计事件；
+- `docs/DATA_MODEL.md`。
 
-第二阶段才会：
-
-- 初始化 Git；
-- 创建 `package.json`；
-- 安装 Next.js、TypeScript、Tailwind、Vitest；
-- 创建首页和 `/api/health`；
-- 验证 Node 内置 SQLite 在 Next.js 服务端可用；
-- 跑通测试和构建。
-
-在此之前，请先阅读文档，确认产品范围、计算口径和演示流程没有问题。
+在进入第三阶段之前，先把首页和健康检查跑一遍，确认运行环境正常。
 
 ---
 
