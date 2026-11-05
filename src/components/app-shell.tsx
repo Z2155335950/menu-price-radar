@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { APP_NAME } from "@/lib/app-meta";
 
 type AppShellProps = {
-  active: "dashboard" | "quote" | "report";
+  active: "dashboard" | "quote" | "catalog" | "dishes" | "report";
   quoteId?: number;
   children: ReactNode;
 };
@@ -48,6 +48,33 @@ function ChartIcon() {
   );
 }
 
+function CatalogIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className="h-4 w-4">
+      <path
+        d="M4 4.5h12v11H4v-11Zm0 3.5h12M8 8v7.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function DishIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className="h-4 w-4">
+      <path
+        d="M3.5 10.5h13a6.5 6.5 0 0 1-13 0Zm3-2.5c0-1.2.6-1.8 1.5-2.5S9.5 4 9.5 2.5m4 5.5c0-1.2.6-1.8 1.5-2.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ArrowUpRightIcon() {
   return (
     <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className="h-3.5 w-3.5">
@@ -86,6 +113,8 @@ function BrandMark() {
 const navigation = [
   { id: "dashboard", href: "/", label: "工作台", icon: GridIcon },
   { id: "quote", href: "/quotes/new", label: "处理报价", icon: UploadIcon },
+  { id: "catalog", href: "/catalog", label: "食材资料", icon: CatalogIcon },
+  { id: "dishes", href: "/dishes", label: "菜品资料", icon: DishIcon },
 ] as const;
 
 export default function AppShell({
@@ -98,7 +127,11 @@ export default function AppShell({
       ? "工作台"
       : active === "quote"
         ? "报价处理"
-        : "风险分析";
+        : active === "catalog"
+          ? "食材资料"
+          : active === "dishes"
+            ? "菜品资料"
+            : "风险分析";
 
   return (
     <div className="min-h-screen bg-canvas text-ink">

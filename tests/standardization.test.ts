@@ -9,6 +9,7 @@ import { seedDemoData } from "../src/db/seed/seed-demo";
 import { normalizeName } from "../src/domain/normalize";
 import { DEMO_QUOTE_TEXT } from "../src/lib/demo-quote-text";
 import { MockQuoteExtractionProvider } from "../src/providers/mock-quote-provider";
+import type { QuoteExtractionProvider } from "../src/providers/quote-extraction-provider";
 
 const databases: DatabaseSync[] = [];
 
@@ -26,6 +27,45 @@ async function createExtractedQuote(database: DatabaseSync): Promise<number> {
   });
 
   return result.quoteId;
+}
+
+function priceWithoutBasisProvider(): QuoteExtractionProvider {
+  return {
+    id: "price-basis-test",
+    async extract() {
+      return {
+        supplierNameRaw: "鲜源蔬菜配送",
+        quoteDate: "2026-11-01",
+        currency: "CNY",
+        items: [
+          {
+            lineNo: 1,
+            itemNameRaw: "去骨鸡腿",
+            quantityValue: "2",
+            quantityUnit: "袋",
+            packageSpecRaw: "5kg/袋",
+            packageQuantityValue: "5",
+            packageUnit: "kg",
+            priceType: "unit",
+            priceValue: "18.00",
+            priceUnit: null,
+            lineTotal: null,
+            evidenceText: "去骨鸡腿 2袋×5kg 18.00元/kg",
+            confidence: 0.96,
+            fieldConfidence: {
+              itemNameRaw: 0.98,
+              quantity: 0.98,
+              package: 0.98,
+              price: 0.9,
+              priceUnit: 0.3,
+            },
+            notes: null,
+          },
+        ],
+        warnings: [],
+      };
+    },
+  };
 }
 
 function getItemId(
@@ -65,6 +105,53 @@ afterEach(() => {
 });
 
 describe("quote standardization", () => {
+  it("lets the user confirm an ambiguous unit-price basis", async () => {
+    const database = createSeededDatabase();
+    const extracted = await extractAndSaveQuote(
+      database,
+      "测试单价口径",
+      { provider: priceWithoutBasisProvider() },
+    );
+    const first = standardizeQuote(database, extracted.quoteId);
+    const question = first.questions.find(
+      (item) => item.type === "price_basis_ambiguous",
+    );
+
+    expect(question).toMatchObject({
+      blocking: true,
+      lineNo: 1,
+    });
+
+    if (!question) {
+      throw new Error("Expected a price basis question");
+    }
+
+    const result = confirmQuoteItem(database, extracted.quoteId, {
+      type: "price_basis_ambiguous",
+      quoteItemId: question.quoteItemId,
+      remember: false,
+      priceUnit: "kg",
+    });
+    const item = result.items.find((entry) => entry.id === question.quoteItemId);
+    const stored = database
+      .prepare(
+        "SELECT price_unit FROM quote_items WHERE id = ?",
+      )
+      .get(question.quoteItemId) as { price_unit: string };
+
+    expect(stored.price_unit).toBe("元/kg");
+    expect(item).toMatchObject({
+      normalizedQuantityBase: 10_000,
+      normalizedUnitPriceMicroYuan: 18_000,
+      status: "ready",
+    });
+    expect(
+      result.questions.some(
+        (entry) => entry.type === "price_basis_ambiguous",
+      ),
+    ).toBe(false);
+  });
+
   it("matches the demo names and blocks the potato package", async () => {
     const database = createSeededDatabase();
     const quoteId = await createExtractedQuote(database);

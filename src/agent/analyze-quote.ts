@@ -16,7 +16,7 @@ import {
 import { withTransaction } from "../db/transaction";
 import { applyQuotePrices } from "./apply-quote-prices";
 
-const RULES_VERSION = "v0.1";
+const RULES_VERSION = "v0.2";
 
 type QuoteRow = {
   id: number;
@@ -63,7 +63,102 @@ type CalculatedDish = AnalysisDishResultView & {
   rankingGroup: RankingGroup;
 };
 
+function formatYuanFromMicroYuan(value: number): string {
+  return `¥${(value / 1_000_000).toFixed(2)}`;
+}
+
+function formatIngredientQuantity(
+  quantityBase: number,
+  baseUnit: "g" | "ml" | "个",
+): string {
+  if (baseUnit === "g" || baseUnit === "ml") {
+    return `${(quantityBase / 1000).toLocaleString("zh-CN", {
+      maximumFractionDigits: 3,
+    })} ${baseUnit === "g" ? "kg" : "L"}`;
+  }
+
+  return `${quantityBase.toLocaleString("zh-CN")} 个`;
+}
+
+function formatIngredientUnitPrice(
+  value: number,
+  baseUnit: "g" | "ml" | "个",
+): string {
+  if (baseUnit === "g") {
+    return `${formatYuanFromMicroYuan(value * 1000)}/kg`;
+  }
+
+  if (baseUnit === "ml") {
+    return `${formatYuanFromMicroYuan(value * 1000)}/L`;
+  }
+
+  return `${formatYuanFromMicroYuan(value)}/个`;
+}
+
+function buildCauseSentence(
+  dishName: string,
+  calculated: ReturnType<typeof calculateDishCost>,
+): string {
+  const main = calculated.mainIngredient;
+
+  if (!main) {
+    return `${dishName}的单份食材成本发生了变化，但当前数据中没有明确的主要涨价食材。`;
+  }
+
+  const changePercent =
+    main.oldPriceMicroYuanPerBaseUnit > 0
+      ? ((main.newPriceMicroYuanPerBaseUnit -
+          main.oldPriceMicroYuanPerBaseUnit) /
+          main.oldPriceMicroYuanPerBaseUnit) *
+        100
+      : null;
+  const priceSentence = `“${main.name}”的采购价从 ${formatIngredientUnitPrice(
+    main.oldPriceMicroYuanPerBaseUnit,
+    main.baseUnit,
+  )} 涨到 ${formatIngredientUnitPrice(
+    main.newPriceMicroYuanPerBaseUnit,
+    main.baseUnit,
+  )}${
+    changePercent === null
+      ? ""
+      : `，涨幅 ${changePercent.toFixed(1)}%`
+  }`;
+  const quantitySentence = `按每份 ${formatIngredientQuantity(
+    main.quantityBase,
+    main.baseUnit,
+  )} 的用量计算，它使单份成本增加了 ${formatYuanFromMicroYuan(
+    main.deltaMicroYuan,
+  )}`;
+  const otherIncreases = calculated.breakdown
+    .filter(
+      (ingredient) =>
+        ingredient.ingredientId !== main.ingredientId &&
+        ingredient.deltaMicroYuan > 0,
+    )
+    .sort((a, b) => b.deltaMicroYuan - a.deltaMicroYuan)
+    .slice(0, 2);
+  const otherSentence =
+    otherIncreases.length > 0
+      ? `此外，${otherIncreases
+          .map((ingredient) => `“${ingredient.name}”`)
+          .join("和")}的价格也上涨，进一步推高了这道菜的成本。`
+      : "";
+  const weeklySentence =
+    calculated.weeklyImpactMicroYuan !== null
+      ? `按当前周销量估算，每周食材毛利预计减少 ${formatYuanFromMicroYuan(
+          calculated.weeklyImpactMicroYuan,
+        )}。`
+      : "";
+
+  return `“${dishName}”成本上升，主要是因为${priceSentence}。${quantitySentence}，所以这道菜的单份食材成本从 ${formatYuanFromMicroYuan(
+    calculated.costBeforeMicroYuan ?? 0,
+  )} 增加到 ${formatYuanFromMicroYuan(
+    calculated.costAfterMicroYuan ?? 0,
+  )}。${otherSentence}${weeklySentence}`;
+}
+
 function buildAdvice(
+  dishName: string,
   calculated: ReturnType<typeof calculateDishCost>,
   riskLevel: RiskLevel,
   mainIngredient: ReturnType<typeof calculateDishCost>["mainIngredient"],
@@ -72,6 +167,7 @@ function buildAdvice(
   weeklyImpactMicroYuan: number | null,
 ): AnalysisAdvice[] {
   const advice: AnalysisAdvice[] = [];
+  const causeSentence = buildCauseSentence(dishName, calculated);
   const evidenceRefs =
     mainIngredient?.quoteItemId !== null &&
     mainIngredient?.quoteItemId !== undefined
@@ -81,8 +177,8 @@ function buildAdvice(
   if (riskLevel === "critical" || riskLevel === "warning") {
     advice.push({
       type: "verify_quote",
-      title: "核对报价和包装",
-      detail: "先确认这条报价的日期、包装和单位与报价单一致，再决定是否接受新价格。",
+      title: "先核对这次涨价",
+      detail: `${causeSentence}请先确认报价日期、包装和单位与原始报价单一致，再决定是否接受。`,
       evidenceRefs,
       facts: {},
     });
@@ -93,16 +189,8 @@ function buildAdvice(
     ) {
       advice.push({
         type: "negotiate",
-        title: "与供应商核对涨幅或议价",
-        detail: `${mainIngredient.name} 让单份食材成本增加 ${(
-          mainIngredient.deltaMicroYuan / 1_000_000
-        ).toFixed(2)} 元${
-          weeklyImpactMicroYuan !== null
-            ? `，按周销量预计影响 ${(
-                weeklyImpactMicroYuan / 1_000_000
-              ).toFixed(2)} 元食材毛利`
-            : ""
-        }。建议先核对本次报价，再与供应商沟通。`,
+        title: "针对涨价原因去沟通",
+        detail: `${causeSentence}建议拿着这条报价先和供应商核对涨价原因，再决定是否议价或接受。`,
         evidenceRefs,
         facts: {
           costDeltaMicroYuan: calculated.costDeltaMicroYuan,
@@ -354,6 +442,7 @@ export function analyzeQuote(
       dish.weekly_sales !== null ? "weekly" : "per_serving";
     const main = costing.mainIngredient;
     const advice = buildAdvice(
+      dish.name,
       costing,
       risk.level,
       main,
@@ -376,6 +465,7 @@ export function analyzeQuote(
       foodCostRateAfterBps: costing.foodCostRateAfterBps,
       weeklyImpactMicroYuan: costing.weeklyImpactMicroYuan,
       priceChangeRatio,
+      causeSentence: buildCauseSentence(dish.name, costing),
       mainIngredient: main,
       ingredients: costing.breakdown,
       advice,

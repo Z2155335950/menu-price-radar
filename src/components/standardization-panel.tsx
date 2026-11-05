@@ -16,6 +16,10 @@ type StandardizationPanelProps = {
 };
 
 function unitPriceLabel(item: StandardizedItem): string {
+  if (item.status === "skipped") {
+    return "已跳过";
+  }
+
   if (item.normalizedUnitPriceMicroYuan === null || !item.baseUnit) {
     return "待换算";
   }
@@ -32,6 +36,10 @@ function unitPriceLabel(item: StandardizedItem): string {
 }
 
 function quantityLabel(item: StandardizedItem): string {
+  if (item.status === "skipped") {
+    return "已跳过";
+  }
+
   if (item.normalizedQuantityBase === null || !item.baseUnit) {
     return "待换算";
   }
@@ -77,18 +85,55 @@ function unitOptions(baseUnit: "g" | "ml" | "个" | null): string[] {
 
 type QuestionCardProps = {
   quoteId: number;
+  quoteDate: string | null;
   question: StandardizationQuestion;
   onUpdated: (result: StandardizationResult) => void;
 };
 
-function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
+function previousDate(value: string | null): string {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(`${value}T00:00:00Z`);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function QuestionCard({
+  quoteId,
+  quoteDate,
+  question,
+  onUpdated,
+}: QuestionCardProps) {
   const [ingredientId, setIngredientId] = useState("");
+  const [newIngredientName, setNewIngredientName] = useState(
+    question.itemNameRaw,
+  );
+  const [newIngredientBaseUnit, setNewIngredientBaseUnit] = useState<
+    "g" | "ml" | "个"
+  >("g");
+  const [addHistoricalPrice, setAddHistoricalPrice] = useState(false);
+  const [historicalPrice, setHistoricalPrice] = useState("");
+  const [historicalDate, setHistoricalDate] = useState(
+    previousDate(quoteDate),
+  );
   const [packageQuantity, setPackageQuantity] = useState("");
   const [packageUnit, setPackageUnit] = useState(
     unitOptions(question.baseUnit)[0] ?? "",
   );
+  const [priceUnit, setPriceUnit] = useState(
+    question.quantityUnit ?? question.baseUnit ?? "",
+  );
   const [remember, setRemember] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isCreatingIngredient, setIsCreatingIngredient] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isMapping =
@@ -100,9 +145,15 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
   const isAcknowledgment =
     question.type === "abnormal_price" ||
     question.type === "backdated_quote";
+  const isPriceBasis = question.type === "price_basis_ambiguous";
   const isInformational =
-    question.type === "new_ingredient_without_baseline" ||
-    question.type === "price_basis_ambiguous";
+    question.type === "new_ingredient_without_baseline";
+  const historyPriceUnit =
+    newIngredientBaseUnit === "g"
+      ? "kg"
+      : newIngredientBaseUnit === "ml"
+        ? "L"
+        : "个";
 
   async function submit() {
     setError(null);
@@ -133,6 +184,17 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
         ...payload,
         packageQuantityValue: packageQuantity.trim(),
         packageUnit,
+      };
+    } else if (isPriceBasis) {
+      if (!priceUnit.trim()) {
+        setError("请填写报价单价的计算单位。");
+        setIsSaving(false);
+        return;
+      }
+
+      payload = {
+        ...payload,
+        priceUnit: priceUnit.trim(),
       };
     } else if (isAcknowledgment) {
       payload = { ...payload, remember: false, acknowledged: true };
@@ -169,6 +231,98 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
     }
   }
 
+  async function createIngredient() {
+    setError(null);
+
+    if (!newIngredientName.trim()) {
+      setError("请填写标准食材名称。");
+      return;
+    }
+
+    if (
+      addHistoricalPrice &&
+      (!historicalPrice.trim() || !historicalDate)
+    ) {
+      setError("请填写历史参考价和生效日期，或关闭历史价格选项。");
+      return;
+    }
+
+    setIsCreatingIngredient(true);
+
+    try {
+      const response = await fetch(`/api/quotes/${quoteId}/ingredients`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quoteItemId: question.quoteItemId,
+          name: newIngredientName.trim(),
+          baseUnit: newIngredientBaseUnit,
+          rememberAlias: remember,
+          historicalPrice: addHistoricalPrice
+            ? {
+                priceValue: historicalPrice.trim(),
+                effectiveDate: historicalDate,
+              }
+            : null,
+        }),
+      });
+      const body = (await response.json()) as
+        | StandardizationResult
+        | { error?: string };
+
+      if (!response.ok) {
+        throw new Error(
+          "error" in body && body.error
+            ? body.error
+            : "新增食材失败。",
+        );
+      }
+
+      onUpdated(body as StandardizationResult);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "新增食材失败。",
+      );
+    } finally {
+      setIsCreatingIngredient(false);
+    }
+  }
+
+  async function skipItem() {
+    setError(null);
+    setIsSkipping(true);
+
+    try {
+      const response = await fetch(
+        `/api/quotes/${quoteId}/items/${question.quoteItemId}/skip`,
+        { method: "POST" },
+      );
+      const body = (await response.json()) as
+        | StandardizationResult
+        | { error?: string };
+
+      if (!response.ok) {
+        throw new Error(
+          "error" in body && body.error
+            ? body.error
+            : "忽略报价行失败。",
+        );
+      }
+
+      onUpdated(body as StandardizationResult);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "忽略报价行失败。",
+      );
+    } finally {
+      setIsSkipping(false);
+    }
+  }
+
   return (
     <article className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
@@ -196,7 +350,7 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
       {isMapping ? (
         <div className="mt-3 space-y-3">
           <label className="block text-[11px] font-medium text-ink-soft">
-            标准食材
+            选择已有食材
             <select
               value={ingredientId}
               onChange={(event) => setIngredientId(event.target.value)}
@@ -217,8 +371,98 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
               onChange={(event) => setRemember(event.target.checked)}
               className="accent-brand"
             />
-            记住这个别名，下次自动匹配
+            以后看到这个叫法，自动选择它
           </label>
+
+          {question.type === "mapping_not_found" ? (
+            <details className="rounded-lg border border-line bg-canvas/40 p-3">
+              <summary className="cursor-pointer list-none text-[11px] font-semibold text-brand-strong">
+                没有这个食材？添加一个
+              </summary>
+              <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_110px]">
+                <label className="text-[11px] font-medium text-ink-soft">
+                  食材名称
+                  <input
+                    value={newIngredientName}
+                    onChange={(event) =>
+                      setNewIngredientName(event.target.value)
+                    }
+                    className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-xs text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/10"
+                  />
+                </label>
+                <label className="text-[11px] font-medium text-ink-soft">
+                  统一按什么单位记录
+                  <select
+                    value={newIngredientBaseUnit}
+                    onChange={(event) =>
+                      setNewIngredientBaseUnit(
+                        event.target.value as "g" | "ml" | "个",
+                      )
+                    }
+                    className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-xs text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/10"
+                  >
+                    <option value="g">克（g）</option>
+                    <option value="ml">毫升（ml）</option>
+                    <option value="个">个</option>
+                  </select>
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddHistoricalPrice((current) => !current)}
+                className="mt-2 text-left text-[11px] font-medium text-ink-soft"
+              >
+                <span className="mr-1.5">{addHistoricalPrice ? "−" : "+"}</span>
+                补充历史参考价（可选）
+              </button>
+              {addHistoricalPrice ? (
+                <div className="mt-2 rounded-lg border border-line bg-white p-3">
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <label className="text-[11px] font-medium text-ink-soft">
+                      历史价格（元/{historyPriceUnit}）
+                      <input
+                        value={historicalPrice}
+                        onChange={(event) =>
+                          setHistoricalPrice(event.target.value)
+                        }
+                        inputMode="decimal"
+                        placeholder="例如 12.50"
+                        className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-xs text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/10"
+                      />
+                    </label>
+                    <label className="text-[11px] font-medium text-ink-soft">
+                      生效日期
+                      <input
+                        type="date"
+                        value={historicalDate}
+                        max={previousDate(quoteDate)}
+                        onChange={(event) =>
+                          setHistoricalDate(event.target.value)
+                        }
+                        className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-xs text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/10"
+                      />
+                    </label>
+                  </div>
+                  <p className="mt-2 text-[10px] leading-5 text-muted">
+                    日期必须早于当前报价日期。不填写时，本次报价将作为该食材的首条价格基线。
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-1 text-[10px] leading-5 text-muted">
+                  不补充时仍可继续，本次报价会作为首条价格基线。
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={createIngredient}
+                disabled={isCreatingIngredient}
+                className="mt-2 rounded-lg border border-brand/30 bg-brand-soft px-3 py-1.5 text-[11px] font-semibold text-brand-strong transition hover:border-brand/50 disabled:opacity-50"
+              >
+                {isCreatingIngredient ? "正在添加…" : "添加并使用"}
+              </button>
+            </details>
+          ) : null}
+
         </div>
       ) : null}
 
@@ -260,6 +504,39 @@ function QuestionCard({ quoteId, question, onUpdated }: QuestionCardProps) {
             记住这个包装换算，下次自动使用
           </label>
         </div>
+      ) : null}
+
+      {isPriceBasis ? (
+        <div className="mt-3">
+          <label className="text-[11px] font-medium text-ink-soft">
+            单价按什么单位计算
+            <div className="mt-1 flex items-center overflow-hidden rounded-lg border border-line bg-white focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/10">
+              <span className="border-r border-line bg-canvas px-3 py-2 text-xs text-muted">
+                元 /
+              </span>
+              <input
+                value={priceUnit}
+                onChange={(event) => setPriceUnit(event.target.value)}
+                placeholder="例如 kg、斤、份、箱"
+                className="min-w-0 flex-1 px-3 py-2 text-xs text-ink outline-none"
+              />
+            </div>
+          </label>
+          <p className="mt-1.5 text-[10px] leading-5 text-muted">
+            这里只填写单位，例如 kg 或 份。系统会再检查单位和包装换算。
+          </p>
+        </div>
+      ) : null}
+
+      {isMapping || isPackage ? (
+        <button
+          type="button"
+          onClick={skipItem}
+          disabled={isSkipping || isSaving || isCreatingIngredient}
+          className="mt-3 text-left text-[11px] font-medium text-muted underline decoration-line-strong underline-offset-2 transition hover:text-ink disabled:opacity-50"
+        >
+          {isSkipping ? "正在忽略…" : "这不是食材，忽略此项"}
+        </button>
       ) : null}
 
       {isAcknowledgment ? (
@@ -368,6 +645,9 @@ export default function StandardizationPanel({
           </div>
           <p className="mt-2 text-[10px] leading-5 text-muted">
             这一步只更新报价行的匹配和归一化字段，还没有写入价格历史。
+            {result.summary.skippedItems > 0
+              ? ` 已忽略 ${result.summary.skippedItems} 行非食材耗材。`
+              : ""}
           </p>
         </div>
       </div>
@@ -446,17 +726,27 @@ export default function StandardizationPanel({
                   <td className="px-4 py-3.5">
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                        item.status === "ready"
+                        item.status === "skipped"
+                          ? "bg-canvas text-muted"
+                          : item.status === "ready"
                           ? "bg-brand-soft text-brand-strong"
                           : "bg-amber-50 text-amber-800"
                       }`}
                     >
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${
-                          item.status === "ready" ? "bg-brand" : "bg-amber-500"
+                          item.status === "skipped"
+                            ? "bg-muted"
+                            : item.status === "ready"
+                              ? "bg-brand"
+                              : "bg-amber-500"
                         }`}
                       />
-                      {item.status === "ready" ? "可继续" : "待确认"}
+                      {item.status === "skipped"
+                        ? "已忽略"
+                        : item.status === "ready"
+                          ? "可继续"
+                          : "待确认"}
                     </span>
                   </td>
                 </tr>
@@ -482,6 +772,7 @@ export default function StandardizationPanel({
               <QuestionCard
                 key={item.id}
                 quoteId={quoteId}
+                quoteDate={result.quoteDate}
                 question={item}
                 onUpdated={onUpdated}
               />

@@ -9,6 +9,7 @@ import {
 } from "../domain/quote-extraction";
 import { yuanStringToMicroYuan } from "../domain/money";
 import { normalizeName } from "../domain/normalize";
+import { getNonFoodExclusionReason } from "../domain/non-food";
 import { withTransaction } from "../db/transaction";
 
 const DEMO_RESTAURANT_NAME = "临江小馆";
@@ -53,11 +54,33 @@ function getSupplierId(
   restaurantId: number,
   supplierName: string,
 ): number | null {
+  const normalizedName = normalizeName(supplierName);
   const row = database
     .prepare(
-      "SELECT id FROM suppliers WHERE restaurant_id = ? AND normalized_name = ? LIMIT 1",
+      `
+        SELECT s.id
+        FROM suppliers s
+        WHERE s.restaurant_id = ?
+          AND s.is_active = 1
+          AND (
+            s.normalized_name = ?
+            OR EXISTS (
+              SELECT 1
+              FROM supplier_aliases sa
+              WHERE sa.supplier_id = s.id
+                AND sa.normalized_alias = ?
+            )
+          )
+        ORDER BY CASE WHEN s.normalized_name = ? THEN 0 ELSE 1 END
+        LIMIT 1
+      `,
     )
-    .get(restaurantId, normalizeName(supplierName)) as IdRow | undefined;
+    .get(
+      restaurantId,
+      normalizedName,
+      normalizedName,
+      normalizedName,
+    ) as IdRow | undefined;
 
   return row?.id ?? null;
 }
@@ -88,6 +111,10 @@ function buildQuestions(
   }
 
   for (const item of items) {
+    if (getNonFoodExclusionReason(item.itemNameRaw)) {
+      continue;
+    }
+
     const linePrefix = `第 ${item.lineNo} 行“${item.itemNameRaw}”`;
     const beforeCount = questions.length;
 
@@ -189,9 +216,21 @@ export function saveExtractedQuote(
   );
   const quoteStatus =
     questions.length > 0 ? "needs_confirmation" : "extracted";
-  const lineStatus = new Map<number, "draft" | "needs_confirmation">();
+  const lineStatus = new Map<
+    number,
+    "draft" | "needs_confirmation" | "skipped"
+  >();
+  const exclusionReasons = new Map<number, string>();
 
   for (const item of quote.items) {
+    const exclusionReason = getNonFoodExclusionReason(item.itemNameRaw);
+
+    if (exclusionReason) {
+      exclusionReasons.set(item.lineNo, exclusionReason);
+      lineStatus.set(item.lineNo, "skipped");
+      continue;
+    }
+
     lineStatus.set(
       item.lineNo,
       questions.some((question) => question.lineNo === item.lineNo)
@@ -243,6 +282,14 @@ export function saveExtractedQuote(
         throw new Error(`${item.itemNameRaw} 的行总价必须大于 0。`);
       }
 
+      const exclusionReason = exclusionReasons.get(item.lineNo);
+      const notes = [
+        item.notes,
+        exclusionReason ? `自动忽略：${exclusionReason}` : null,
+      ]
+        .filter((value): value is string => Boolean(value))
+        .join("；");
+
       database
         .prepare(
           `
@@ -274,7 +321,7 @@ export function saveExtractedQuote(
           item.evidenceText,
           options.source.evidencePage,
           lineStatus.get(item.lineNo) ?? "draft",
-          item.notes ?? null,
+          notes || null,
         );
     }
 
@@ -319,6 +366,7 @@ export function saveExtractedQuote(
     items: quote.items.map((item) => ({
       ...item,
       status: lineStatus.get(item.lineNo) ?? "draft",
+      exclusionReason: exclusionReasons.get(item.lineNo) ?? null,
     })),
     questions,
     warnings: quote.warnings,

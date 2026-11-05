@@ -6,6 +6,7 @@ import {
   type IngredientRecord,
 } from "../domain/ingredient-matching";
 import { normalizeQuoteItem } from "../domain/unit-conversion";
+import { getNonFoodExclusionReason } from "../domain/non-food";
 import type {
   IngredientOption,
   StandardizationQuestion,
@@ -42,6 +43,8 @@ type ItemRow = {
   match_method: string | null;
   match_confidence: number | null;
   match_evidence: string | null;
+  status: string;
+  notes: string | null;
 };
 
 type IngredientRow = {
@@ -180,7 +183,7 @@ export function standardizeQuote(
             package_quantity_value, package_unit,
             price_type, price_value_micro_yuan, price_unit,
             confidence, evidence_text, match_method,
-            match_confidence, match_evidence
+            match_confidence, match_evidence, status, notes
           FROM quote_items
           WHERE quote_id = ?
           ORDER BY line_no
@@ -243,6 +246,87 @@ export function standardizeQuote(
     const standardizedItems: StandardizedItem[] = [];
 
     for (const item of itemRows) {
+      const autoExclusionReason =
+        item.status === "skipped"
+          ? null
+          : getNonFoodExclusionReason(item.item_name_raw);
+
+      if (item.status === "skipped" || autoExclusionReason) {
+        if (autoExclusionReason) {
+          const notes = [
+            item.notes,
+            `自动忽略：${autoExclusionReason}`,
+          ]
+            .filter((value): value is string => Boolean(value))
+            .join("；");
+
+          database
+            .prepare(
+              `
+                UPDATE quote_items
+                SET ingredient_id = NULL,
+                    match_method = NULL,
+                    match_confidence = NULL,
+                    match_evidence = '非食材耗材，自动跳过',
+                    normalized_quantity_base = NULL,
+                    base_unit = NULL,
+                    normalized_unit_price_micro_yuan = NULL,
+                    status = 'skipped',
+                    notes = ?,
+                    updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                WHERE id = ?
+              `,
+            )
+            .run(notes, item.id);
+
+          database
+            .prepare(
+              `
+                INSERT INTO audit_events (
+                  restaurant_id, quote_id, analysis_run_id,
+                  entity_type, entity_id, event_type,
+                  actor_type, actor_label, payload_json
+                ) VALUES (?, ?, NULL, 'quote_item', ?, 'quote_item_auto_skipped', 'system', 'non-food-filter', ?)
+              `,
+            )
+            .run(
+              quote.restaurant_id,
+              quoteId,
+              item.id,
+              JSON.stringify({
+                lineNo: item.line_no,
+                itemNameRaw: item.item_name_raw,
+                reason: autoExclusionReason,
+              }),
+            );
+        }
+
+        standardizedItems.push({
+          id: item.id,
+          lineNo: item.line_no,
+          itemNameRaw: item.item_name_raw,
+          ingredientId: null,
+          ingredientName: null,
+          baseUnit: null,
+          matchMethod: null,
+          matchConfidence: null,
+          matchEvidence: autoExclusionReason
+            ? "非食材耗材，自动跳过"
+            : "非食材耗材，已跳过",
+          quantityValue: item.quantity_value,
+          quantityUnit: item.quantity_unit,
+          packageQuantityValue: item.package_quantity_value,
+          packageUnit: item.package_unit,
+          normalizedQuantityBase: null,
+          normalizedUnitPriceMicroYuan: null,
+          previousPriceMicroYuan: null,
+          priceChangeRatio: null,
+          status: "skipped",
+          evidenceText: item.evidence_text,
+        });
+        continue;
+      }
+
       let ingredient = item.ingredient_id
         ? ingredientsById.get(item.ingredient_id) ?? null
         : null;
@@ -600,6 +684,9 @@ export function standardizeQuote(
     }
 
     const blockingQuestions = questions.filter((item) => item.blocking).length;
+    const actionableItems = standardizedItems.filter(
+      (item) => item.status !== "skipped",
+    );
     const quoteStatus =
       blockingQuestions > 0 ? "needs_confirmation" : "ready";
 
@@ -636,11 +723,13 @@ export function standardizeQuote(
 
     result = {
       quoteId,
+      quoteDate: quote.quote_date,
       status: quoteStatus,
       items: standardizedItems,
       questions,
       summary: {
-        totalItems: itemRows.length,
+        totalItems: actionableItems.length,
+        skippedItems: standardizedItems.length - actionableItems.length,
         matchedItems: standardizedItems.filter(
           (item) => item.ingredientId !== null,
         ).length,

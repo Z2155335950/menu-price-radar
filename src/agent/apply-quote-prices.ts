@@ -70,7 +70,7 @@ export function applyQuotePrices(
           id, line_no, ingredient_id,
           normalized_unit_price_micro_yuan, status
         FROM quote_items
-        WHERE quote_id = ?
+        WHERE quote_id = ? AND status <> 'skipped'
         ORDER BY line_no
       `,
     )
@@ -132,7 +132,7 @@ export function applyQuotePrices(
           UPDATE quote_items
           SET status = 'applied',
               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-          WHERE quote_id = ?
+          WHERE quote_id = ? AND status <> 'skipped'
         `,
       )
       .run(quoteId);

@@ -57,7 +57,8 @@ export type ExtractionQuestion = {
 };
 
 export type ExtractionResponseItem = ExtractedQuoteItem & {
-  status: "draft" | "needs_confirmation";
+  status: "draft" | "needs_confirmation" | "skipped";
+  exclusionReason?: string | null;
 };
 
 export type ExtractionResponse = {

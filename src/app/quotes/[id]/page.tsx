@@ -249,11 +249,13 @@ function RiskRow({ result }: { result: AnalysisDishResultView }) {
           {result.dishName}
         </a>
         <p className="mt-1 text-[11px] text-muted">
-          {result.calculation.mainIngredient?.name ?? "—"}
+          {result.calculation.mainIngredient
+            ? `${result.calculation.mainIngredient.name}采购价`
+            : "没有明确主料"}
           {result.calculation.priceChangeRatio !== null
-            ? ` · 主料 ${result.calculation.priceChangeRatio >= 0 ? "+" : ""}${(
+            ? `${result.calculation.priceChangeRatio >= 0 ? "上涨" : "下降"} ${(Math.abs(
                 result.calculation.priceChangeRatio * 100
-              ).toFixed(1)}%`
+              )).toFixed(1)}%`
             : ""}
         </p>
       </td>
@@ -367,7 +369,10 @@ function DishDetail({ result }: { result: AnalysisDishResultView }) {
               {result.dishName}
             </p>
             <p className="mt-0.5 text-[11px] text-muted">
-              {result.calculation.mainIngredient?.name ?? "—"} ·{" "}
+              {result.calculation.mainIngredient
+                ? `${result.calculation.mainIngredient.name}涨价导致`
+                : "成本变化"}{" "}
+              ·{" "}
               {result.weeklyImpactMicroYuan !== null
                 ? `预计周影响 ${formatYuan(result.weeklyImpactMicroYuan)}`
                 : "缺少周销量"}
@@ -497,6 +502,17 @@ function DishDetail({ result }: { result: AnalysisDishResultView }) {
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-semibold text-ink">行动建议</h3>
             <span className="text-[10px] text-muted">规则生成 · 可人工判断</span>
+          </div>
+          <div className="mt-2.5 rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-800">
+              为什么这道菜会涨
+            </p>
+            <p className="mt-1.5 text-xs leading-6 text-ink-soft">
+              {result.calculation.causeSentence ??
+                `这道菜成本上升，主要与“${
+                  result.calculation.mainIngredient?.name ?? "主要食材"
+                }”的价格上涨有关。`}
+            </p>
           </div>
           <div className="mt-2.5">
             <AdviceCards advice={result.calculation.advice} />
@@ -632,11 +648,13 @@ export default async function QuoteReportPage({ params }: PageProps) {
                         {topResult.dishName}
                       </p>
                       <p className="mt-1 text-[11px] text-muted">
-                        {topResult.calculation.mainIngredient?.name ?? "—"}
+                        {topResult.calculation.mainIngredient
+                          ? `${topResult.calculation.mainIngredient.name}采购价`
+                          : "没有明确主料"}
                         {topResult.calculation.priceChangeRatio !== null
-                          ? ` 主料 ${topResult.calculation.priceChangeRatio >= 0 ? "+" : ""}${(
+                          ? ` ${topResult.calculation.priceChangeRatio >= 0 ? "上涨" : "下降"} ${(Math.abs(
                               topResult.calculation.priceChangeRatio * 100
-                            ).toFixed(1)}%`
+                            )).toFixed(1)}%`
                           : ""}
                       </p>
                     </div>

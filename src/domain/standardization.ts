@@ -49,17 +49,19 @@ export type StandardizedItem = {
   normalizedUnitPriceMicroYuan: number | null;
   previousPriceMicroYuan: number | null;
   priceChangeRatio: number | null;
-  status: "needs_confirmation" | "ready";
+  status: "needs_confirmation" | "ready" | "skipped";
   evidenceText: string | null;
 };
 
 export type StandardizationResult = {
   quoteId: number;
+  quoteDate: string | null;
   status: "needs_confirmation" | "ready";
   items: StandardizedItem[];
   questions: StandardizationQuestion[];
   summary: {
     totalItems: number;
+    skippedItems: number;
     matchedItems: number;
     readyItems: number;
     blockingQuestions: number;
@@ -86,6 +88,7 @@ export const confirmationInputSchema = z.object({
     .nullable()
     .optional(),
   packageUnit: z.string().trim().min(1).nullable().optional(),
+  priceUnit: z.string().trim().min(1).max(50).nullable().optional(),
   acknowledged: z.boolean().optional(),
 });
 

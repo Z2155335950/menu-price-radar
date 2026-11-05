@@ -28,6 +28,7 @@ type ItemRow = {
   package_quantity_value: string | null;
   package_unit: string | null;
   package_spec_raw: string | null;
+  price_unit: string | null;
   evidence_text: string | null;
 };
 
@@ -77,7 +78,7 @@ function getItem(
         SELECT
           id, quote_id, line_no, item_name_raw, ingredient_id,
           quantity_unit, package_quantity_value, package_unit,
-          package_spec_raw, evidence_text
+          package_spec_raw, price_unit, evidence_text
         FROM quote_items
         WHERE id = ? AND quote_id = ?
         LIMIT 1
@@ -236,6 +237,10 @@ function questionText(
 
   if (type === "package_unknown" || type === "unit_unknown") {
     return `第 ${item.line_no} 行“${item.item_name_raw}”每${item.quantity_unit ?? "包装"}对应多少${ingredient?.base_unit ?? "基础单位"}？`;
+  }
+
+  if (type === "price_basis_ambiguous") {
+    return `第 ${item.line_no} 行“${item.item_name_raw}”的单价按哪个单位计算？`;
   }
 
   if (type === "abnormal_price") {
@@ -402,6 +407,40 @@ export function confirmQuoteItem(
         packageSpecRaw,
         packageBaseQuantity,
       });
+    } else if (input.type === "price_basis_ambiguous") {
+      if (!input.priceUnit) {
+        throw new Error("请填写报价单价的计算单位。");
+      }
+
+      const priceUnit = input.priceUnit
+        .replace(/^元\s*\/\s*/, "")
+        .replace(/^每/, "")
+        .trim();
+
+      if (!priceUnit) {
+        throw new Error("请填写报价单价的计算单位。");
+      }
+
+      beforeJson = JSON.stringify({
+        priceUnit: item.price_unit,
+      });
+      afterJson = JSON.stringify({
+        priceUnit: `元/${priceUnit}`,
+      });
+
+      database
+        .prepare(
+          `
+            UPDATE quote_items
+            SET price_unit = ?,
+                status = 'needs_confirmation',
+                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+            WHERE id = ?
+          `,
+        )
+        .run(`元/${priceUnit}`, item.id);
+
+      optionsJson = JSON.stringify({ priceUnit });
     } else if (input.type === "abnormal_price") {
       if (!input.acknowledged) {
         throw new Error("请确认报价价格无误。");
@@ -443,6 +482,7 @@ export function confirmQuoteItem(
           ingredientId: input.ingredientId ?? null,
           packageQuantityValue: input.packageQuantityValue ?? null,
           packageUnit: input.packageUnit ?? null,
+          priceUnit: input.priceUnit ?? null,
           acknowledged: input.acknowledged ?? false,
         }),
         scope,

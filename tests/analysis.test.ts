@@ -167,12 +167,24 @@ describe("quote analysis", () => {
     });
 
     const calculation = JSON.parse(results[0].calculation_json) as {
-      advice: Array<{ type: string }>;
+      advice: Array<{ type: string; detail: string }>;
+      causeSentence: string;
       mainIngredient: { name: string; quoteItemId: number };
     };
 
     expect(calculation.mainIngredient.name).toBe("去骨鸡腿");
     expect(calculation.mainIngredient.quoteItemId).toBeGreaterThan(0);
+    expect(calculation.causeSentence).toContain(
+      "“宫保鸡丁”成本上升，主要是因为“去骨鸡腿”的采购价",
+    );
+    expect(calculation.causeSentence).toContain("¥18.00/kg");
+    expect(calculation.causeSentence).toContain("¥22.00/kg");
+    expect(calculation.causeSentence).toContain(
+      "单份食材成本从 ¥10.00 增加到 ¥11.00",
+    );
+    expect(
+      calculation.advice.find((item) => item.type === "verify_quote")?.detail,
+    ).toContain("主要是因为“去骨鸡腿”的采购价");
     expect(calculation.advice.map((item) => item.type)).toEqual(
       expect.arrayContaining(["verify_quote", "negotiate", "adjust_price"]),
     );

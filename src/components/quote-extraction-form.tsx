@@ -13,6 +13,7 @@ import {
   DEMO_QUOTE_PDF_PATH,
 } from "@/lib/demo-files";
 import StandardizationPanel from "./standardization-panel";
+import SupplierResolutionCard from "./supplier-resolution-card";
 
 type QuoteExtractionFormProps = {
   sampleText: string;
@@ -327,6 +328,60 @@ export default function QuoteExtractionForm({
     setStandardizationError(null);
   }
 
+  async function supplierResolved(
+    quoteId: number,
+    supplierName: string,
+  ) {
+    setResult((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const questions = current.questions.filter(
+        (question) => question.type !== "supplier_unmatched",
+      );
+
+      return {
+        ...current,
+        supplierNameRaw: supplierName,
+        status: questions.length > 0 ? "needs_confirmation" : "extracted",
+        questions,
+      };
+    });
+
+    await standardize(quoteId);
+  }
+
+  function standardizationUpdated(updated: StandardizationResult) {
+    const standardizedByLine = new Map(
+      updated.items.map((item) => [item.lineNo, item]),
+    );
+
+    setStandardization(updated);
+    setResult((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        items: current.items.map((item) => {
+          const standardized = standardizedByLine.get(item.lineNo);
+
+          if (!standardized || standardized.status !== "skipped") {
+            return item;
+          }
+
+          return {
+            ...item,
+            status: "skipped",
+            exclusionReason: standardized.matchEvidence,
+          };
+        }),
+      };
+    });
+  }
+
   function handleDrop(event: DragEvent<HTMLLabelElement>) {
     event.preventDefault();
     setIsDragging(false);
@@ -561,12 +616,19 @@ export default function QuoteExtractionForm({
               questions={
                 standardization
                   ? result.questions.filter(
-                      (question) => question.type !== "package_unknown",
+                      (question) =>
+                        question.type !== "package_unknown" &&
+                        question.type !== "supplier_unmatched",
                     )
-                  : result.questions
+                  : result.questions.filter(
+                      (question) => question.type !== "supplier_unmatched",
+                    )
               }
               standardizationStatus={standardization?.status ?? null}
               onReset={clearAll}
+              onSupplierResolved={(supplierName) =>
+                supplierResolved(result.quoteId, supplierName)
+              }
             />
 
             {isStandardizing ? (
@@ -588,7 +650,7 @@ export default function QuoteExtractionForm({
                 <StandardizationPanel
                   quoteId={result.quoteId}
                   result={standardization}
-                  onUpdated={setStandardization}
+                  onUpdated={standardizationUpdated}
                 />
               </div>
             ) : null}
@@ -604,16 +666,27 @@ function ExtractionResult({
   questions,
   standardizationStatus,
   onReset,
+  onSupplierResolved,
 }: {
   result: ExtractionResponse;
   questions: ExtractionQuestion[];
   standardizationStatus: StandardizationResult["status"] | null;
   onReset: () => void;
+  onSupplierResolved: (supplierName: string) => Promise<void>;
 }) {
   const isReady = standardizationStatus === "ready";
   const needsConfirmation = standardizationStatus
     ? !isReady
     : result.status === "needs_confirmation";
+  const needsSupplier = result.questions.some(
+    (question) => question.type === "supplier_unmatched",
+  );
+  const activeItems = result.items.filter(
+    (item) => item.status !== "skipped",
+  );
+  const skippedItems = result.items.filter(
+    (item) => item.status === "skipped",
+  );
 
   return (
     <section className="space-y-4">
@@ -633,7 +706,10 @@ function ExtractionResult({
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
               <span>报价日期 {result.quoteDate}</span>
               <span>币种 {result.currency}</span>
-              <span>{result.items.length} 行报价</span>
+              <span>{activeItems.length} 行食材报价</span>
+              {skippedItems.length > 0 ? (
+                <span>{skippedItems.length} 行已自动忽略</span>
+              ) : null}
             </div>
           </div>
 
@@ -670,6 +746,47 @@ function ExtractionResult({
           </div>
         ) : null}
       </div>
+
+      {needsSupplier ? (
+        <SupplierResolutionCard
+          quoteId={result.quoteId}
+          supplierNameRaw={result.supplierNameRaw}
+          onResolved={onSupplierResolved}
+        />
+      ) : null}
+
+      {skippedItems.length > 0 ? (
+        <section className="rounded-2xl border border-line bg-white p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-semibold text-ink">
+                已自动忽略 {skippedItems.length} 项非食材内容
+              </h2>
+              <p className="mt-1 text-[11px] leading-5 text-muted">
+                这些内容保留在报价证据中，但不会参与食材匹配、改价和风险计算。
+              </p>
+            </div>
+            <span className="rounded-full bg-canvas px-2.5 py-1 text-[10px] font-medium text-muted">
+              自动筛选
+            </span>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {skippedItems.map((item) => (
+              <div
+                key={`skipped-${item.lineNo}`}
+                className="rounded-lg border border-line bg-canvas/50 px-3 py-2.5"
+              >
+                <p className="text-xs font-medium text-ink">
+                  {item.itemNameRaw}
+                </p>
+                <p className="mt-0.5 text-[10px] leading-5 text-muted">
+                  {item.exclusionReason ?? "非食材耗材"}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {result.sourceType !== "text" && result.sourceUrl ? (
         <details className="group rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(20,35,28,0.03)]">
@@ -756,7 +873,7 @@ function ExtractionResult({
               每一行都能回到原文证据。
             </p>
           </div>
-          <span className="text-[11px] text-muted">共 {result.items.length} 行</span>
+          <span className="text-[11px] text-muted">共 {activeItems.length} 行</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -772,7 +889,7 @@ function ExtractionResult({
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {result.items.map((item) => (
+              {activeItems.map((item) => (
                 <tr key={item.lineNo} className="align-top">
                   <td className="px-4 py-3.5 text-[11px] tabular text-muted">
                     {item.lineNo}

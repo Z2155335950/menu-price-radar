@@ -115,11 +115,12 @@ describe("database migrations", () => {
 
     const tables = listTables(database);
 
-    expect(tables).toHaveLength(15);
+    expect(tables).toHaveLength(16);
     expect(tables).toEqual(
       expect.arrayContaining([
         "restaurants",
         "suppliers",
+        "supplier_aliases",
         "ingredients",
         "ingredient_aliases",
         "unit_conversions",
@@ -135,7 +136,7 @@ describe("database migrations", () => {
         "schema_migrations",
       ]),
     );
-    expect(listAppliedMigrations(database)).toEqual(["001"]);
+    expect(listAppliedMigrations(database)).toEqual(["001", "002"]);
   });
 
   it("is idempotent and does not reapply the same migration", () => {
@@ -144,16 +145,19 @@ describe("database migrations", () => {
     const first = runMigrations(database);
     const second = runMigrations(database);
 
-    expect(first.applied).toEqual(["001_initial.sql"]);
-    expect(first.currentVersion).toBe("001");
+    expect(first.applied).toEqual([
+      "001_initial.sql",
+      "002_supplier_aliases.sql",
+    ]);
+    expect(first.currentVersion).toBe("002");
     expect(second.applied).toEqual([]);
-    expect(second.alreadyApplied).toBe(1);
+    expect(second.alreadyApplied).toBe(2);
 
     const migrationCount = database
       .prepare("SELECT COUNT(*) AS count FROM schema_migrations")
       .get() as { count: number };
 
-    expect(migrationCount.count).toBe(1);
+    expect(migrationCount.count).toBe(2);
   });
 
   it("enforces foreign keys and uniqueness constraints", () => {

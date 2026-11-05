@@ -42,6 +42,7 @@ export type AnalysisCalculation = {
   foodCostRateAfterBps: number | null;
   weeklyImpactMicroYuan: number | null;
   priceChangeRatio: number | null;
+  causeSentence?: string;
   mainIngredient: AnalysisIngredient | null;
   ingredients: AnalysisIngredient[];
   advice: AnalysisAdvice[];
