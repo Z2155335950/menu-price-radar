@@ -1,6 +1,6 @@
 # 菜价雷达
 
-> 餐厅食材变价与毛利预警 Agent  
+> 餐厅食材变价与毛利预警 Agent
 > **上传一张供应商报价单，自动找出哪些菜因为食材涨价正在亏钱，并按预计损失金额排序。**
 
 ---
@@ -17,8 +17,8 @@
 | AI Key | 不需要；默认 mock 模式 |
 | Node.js | 24.22.1 |
 
-> 完整流程：报价页 `/quotes/new` → 匹配确认 → 计算风险 → 风险看板 `/quotes/[id]`。  
-> 当前 mock 模式只识别内置样例图片；电子 PDF 会真实抽取文字层；任意图片需要配置视觉模型。  
+> 完整流程：报价页 `/quotes/new` → 匹配确认 → 计算风险 → 风险看板 `/quotes/[id]`。
+> 当前 mock 模式只识别内置样例图片；电子 PDF 会真实抽取文字层；任意图片需要配置视觉模型。
 > 计算的是核心食材成本，不是房租、人工和水电后的净利润。
 
 ![最终毛利风险看板](docs/assets/redesign-report.png)
@@ -27,7 +27,7 @@
 
 ## 快速启动
 
-在项目根目录 `D:\hack\deepseek` 打开 PowerShell：
+在项目根目录打开 PowerShell：
 
 ```powershell
 npm install
@@ -224,7 +224,7 @@ src/lib/                通用基础设施
 
 scripts/                数据库和演示命令
   db-migrate.mjs        执行迁移
-  db-tables.mjs         列出表
+  db-tables.mjs         列出数据库表
   seed.mjs              导入演示数据
   reset-demo.mjs        重建演示数据
 
